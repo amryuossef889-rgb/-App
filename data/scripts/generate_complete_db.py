@@ -1,9 +1,65 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
 import json
 import sqlite3
 import os
 import re
+
+def sanitize_json(text):
+    out = []
+    in_str = False
+    escaped = False
+    i = 0
+    n = len(text)
+    while i < n:
+        c = text[i]
+        if not in_str:
+            if c == '"':
+                in_str = True
+            out.append(c)
+            i += 1
+        else:
+            if escaped:
+                out.append(c)
+                escaped = False
+                i += 1
+            else:
+                if c == '\\':
+                    if i + 1 < n:
+                        next_c = text[i+1]
+                        if next_c in '"/\\bfnrt':
+                            out.append(c)
+                            escaped = True
+                        elif next_c == 'u' and i + 5 < n and all(ch in '0123456789abcdefABCDEF' for ch in text[i+2:i+6]):
+                            out.append(c)
+                            escaped = True
+                        else:
+                            out.append('\\\\')
+                    else:
+                        out.append('\\\\')
+                    i += 1
+                elif c == '"':
+                    in_str = False
+                    out.append(c)
+                    i += 1
+                elif ord(c) < 32:
+                    if c == '\n':
+                        out.append('\\n')
+                    elif c == '\r':
+                        out.append('\\r')
+                    elif c == '\t':
+                        out.append('\\t')
+                    else:
+                        out.append(f'\\u{ord(c):04x}')
+                    i += 1
+                else:
+                    out.append(c)
+                    i += 1
+    return ''.join(out)
+
+def load_json_dataset(path):
+    with open(path, 'rb') as f:
+        raw_text = f.read().decode('utf-8', errors='ignore')
+    sanitized = sanitize_json(raw_text)
+    return json.loads(sanitized)
 
 def strip_tashkeel(text):
     if not text:
@@ -16,16 +72,14 @@ def strip_tashkeel(text):
 
 def main():
     print("Loading Bukhari and Muslim datasets...")
-    with open("data/raw/bukhari.json", "r", encoding="utf-8") as f:
-        bukhari_data = json.load(f)
-    with open("data/raw/muslim.json", "r", encoding="utf-8") as f:
-        muslim_data = json.load(f)
+    bukhari_data = load_json_dataset("data/raw/bukhari.json")
+    muslim_data = load_json_dataset("data/raw/muslim.json")
 
     bukhari_chapters = {c['id']: c['arabic'] for c in bukhari_data.get('chapters', [])}
     muslim_chapters = {c['id']: c['arabic'] for c in muslim_data.get('chapters', [])}
 
     all_hadiths = []
-    hadith_search_index = [] # list of (id, collection, clean_text, hadith_obj)
+    hadith_search_index = []
 
     # Process Bukhari
     for h in bukhari_data.get('hadiths', []):
@@ -45,46 +99,43 @@ def main():
         hadith_search_index.append((hid, "SAHIH_BUKHARI", strip_tashkeel(arabic_text), narrator_str, chapter_name))
 
     # Process Muslim
+    bukhari_count = len(all_hadiths)
     for h in muslim_data.get('hadiths', []):
-        hid = h['id']
+        # ensure unique id across collections if needed, or use collection-based IDs
+        hid = h['id'] + bukhari_count
         chapter_name = muslim_chapters.get(h['chapterId'], "صحيح مسلم")
         narrator = h.get('english', {}).get('narrator', '')
         narrator_str = narrator if narrator else "عن الصحابي رضي الله عنه"
         arabic_text = h.get('arabic', '')
-        source_ref = f"صحيح مسلم - {chapter_name} (حديث {h.get('idInBook', hid)})"
+        source_ref = f"صحيح مسلم - {chapter_name} (حديث {h.get('idInBook', h['id'])})"
         
         hadith_row = (
-            hid, "SAHIH_MUSLIM", chapter_name, chapter_name, h.get('idInBook', hid),
+            hid, "SAHIH_MUSLIM", chapter_name, chapter_name, h.get('idInBook', h['id']),
             narrator_str, arabic_text, source_ref, "صحيح", 0, None,
-            hid, h['chapterId'], h['bookId']
+            h['id'], h['chapterId'], h['bookId']
         )
         all_hadiths.append(hadith_row)
         hadith_search_index.append((hid, "SAHIH_MUSLIM", strip_tashkeel(arabic_text), narrator_str, chapter_name))
 
     print(f"Total Hadiths parsed: {len(all_hadiths)}")
 
-    # Function to search hadith
     def find_hadith_id(keywords, preferred_collection=None):
         clean_keys = [strip_tashkeel(k) for k in keywords]
-        # First try preferred collection
         for hid, coll, clean_txt, narr, chap in hadith_search_index:
             if preferred_collection and coll != preferred_collection:
                 continue
             if all(k in clean_txt for k in clean_keys):
                 return hid
-        # Try any collection
         for hid, coll, clean_txt, narr, chap in hadith_search_index:
             if all(k in clean_txt for k in clean_keys):
                 return hid
-        # Fallback partial
         for hid, coll, clean_txt, narr, chap in hadith_search_index:
             if any(k in clean_txt for k in clean_keys):
                 return hid
         return 1
 
-    # 100 Curated Sunnahs
     sunnah_definitions = [
-        # --- LEVEL 1 (1-25): أسهل السنن اليومية (1-2 دقيقة) ---
+        # --- LEVEL 1 (1-25) ---
         (1, "إخلاص النية في العمل", "استحضار النية الصالحة في كل قول وعمل وطلب مرضاة الله تعالى ليتحول المباح إلى طاعة وأجر.", ["الاعمال بالنيات"], 1, "أعمال القلوب", 1),
         (2, "التبسم في وجوه الناس", "لقاء الإخوان والأهل بابتسامة وبشاشة وطلاقة وجه، فهي صدقة تنشر الألفة والمحبة.", ["بوجه طلق"], 1, "آداب وتعامل", 1),
         (3, "إفشاء السلام على الناس", "إلقاء السلام بصوت واضح عند لقاء أي مسلم أو دخول المجالس بصيغة (السلام عليكم ورحمة الله).", ["تقرا السلام علي من عرفت"], 1, "آداب وتعامل", 1),
@@ -111,7 +162,7 @@ def main():
         (24, "الصلاة على النبي ﷺ عند ذكره", "المسارعة بالصلاة على رسول الله ﷺ كلما ورد اسمه الشريف نيل شفاعته ومغفرة الذنوب.", ["ذكرت عنده فلم يصل علي"], 1, "أذكار وأدعية", 1),
         (25, "دعاء كفارة المجلس", "قول (سبحانك اللهم وبحمدك أشهد أن لا إله إلا أنت أستغفرك وأتوب إليك) قبل الانصراف من أي لقاء.", ["سبحانك اللهم وبحمدك"], 1, "أذكار وأدعية", 1),
 
-        # --- LEVEL 2 (26-50): سنن يومية خفيفة (3-5 دقائق) ---
+        # --- LEVEL 2 (26-50) ---
         (26, "استعمال السواك وتطييب الفم", "تنظيف الأسنان بالسواك عند الوضوء، وقبل الصلاة، وعند الاستيقاظ، وعند تغير رائحة الفم.", ["لولا ان اشق علي امتي لامرتهم بالسواك"], 2, "طهارة ونظافة", 2),
         (27, "إسباغ الوضوء والدعاء بعده", "إتمام غسل أعضاء الوضوء بإتقان وإيصال الماء لكل موضع، ثم التشهد بعده لتُفتح لك أبواب الجنة.", ["اسباغ الوضوء علي المكاره"], 2, "طهارة ونظافة", 3),
         (28, "سنة الوضوء (صلاة ركعتين خاشعتين)", "أداء ركعتين بعد الانتهاء من الوضوء بخشوع واستحضار نيل مغفرة ما تقدم من الذنوب.", ["من توضا نحو وضوئي هذا ثم صلي ركعتين"], 2, "صلاة وعبادات", 4),
@@ -138,7 +189,7 @@ def main():
         (49, "الاستئذان ثلاثاً قبل الدخول", "طلب الإذن عند طرق الأبواب أو الزيارة ثلاث مرات، فإن لم يؤذن لك ترجع دون حرج.", ["الاستئذان ثلاث فان اذن لك والا فارجع"], 2, "آداب وتعامل", 2),
         (50, "إكرام الجار وكف الأذى عنه", "الإحسان إلى الجيران بالقول الطيب وتقديم الطعام وتجنب الإزعاج وإكرام الضيف.", ["من كان يؤمن بالله واليوم الاخر فليكرم جاره"], 2, "بر وإحسان", 5),
 
-        # --- LEVEL 3 (51-75): عبادات ونوافل منتظمة (5-15 دقيقة) ---
+        # --- LEVEL 3 (51-75) ---
         (51, "صلاة الضحى (صلاة الأوابين)", "صلاة ركعتين أو أربع في وقت الضحى شكراً لسلامة 360 مفصلاً في جسد الإنسان.", ["يصبح علي كل سلامي من احدكم صدقه"], 3, "صلاة وعبادات", 8),
         (52, "المحافظة على السنن الرواتب الاثنتي عشرة", "المواظبة على 12 ركعة راتبة يومياً لتبني لنفسك قصراً في جنات النعيم.", ["ثنتي عشره ركعه تطوعا غير فريضه"], 3, "صلاة وعبادات", 15),
         (53, "قراءة سورة الكهف يوم الجمعة", "تلاوة سورة الكهف في ليلة الجمعة أو نهارها ليكون لك نوراً يضيء ما بين الجمعتين.", ["من قرا سوره الكهف في يوم الجمعه"], 3, "قرآن وذكر", 20),
@@ -165,7 +216,7 @@ def main():
         (74, "شكر النعمة وترك عيب الطعام", "حمد الله على ما رزق وقبول الطعام دون ذم أو انتقاد؛ إن اشتهاه أكل وإن كرهه تركه بلطف.", ["ما عاب النبي صلي الله عليه وسلم طعاما قط"], 3, "طعام وشراب", 5),
         (75, "المداومة على العمل الصالح وإن قل", "اختيار طاعة يسيرة والثبات عليها يومياً دون انقطاع؛ فإن أحب الأعمال إلى الله أدومها.", ["احب الاعمال الي الله ادومها وان قل"], 3, "أعمال القلوب", 5),
 
-        # --- LEVEL 4 (76-90): سنن تتطلب التزاماً واجتهاداً (15-45 دقيقة) ---
+        # --- LEVEL 4 (76-90) ---
         (76, "قيام الليل والتهجد بخشوع", "الاستيقاظ في جوف الليل والوقوف بين يدي الله متهجداً بركعات خاشعة يناجي فيها ربه.", ["افضل الصلاه بعد الصلاه المكتوبه صلاه الليل"], 4, "صلاة وعبادات", 30),
         (77, "الجلوس لذكر الله من الفجر حتى الشروق", "المكث في المسجد أو المصلى تسبح وتقرأ القرآن بعد الفجر حتى طلوع الشمس ثم صلاة ركعتين.", ["ثم قعد يذكر الله حتي تطلع الشمس"], 4, "قرآن وذكر", 45),
         (78, "صيام ست من شوال", "صيام 6 أيام بعد رمضان لنيل ثواب صيام الدهر كاملاً كما علمنا رسول الله ﷺ.", ["ثم اتبعه ستا من شوال كان كصيام الدهر"], 4, "صيام وتطوع", 15),
@@ -182,7 +233,7 @@ def main():
         (89, "صلاة التوبة عند الوقوع في ذنب", "المسارعة بالوضوء وصلاة ركعتين تائباً نادماً مستغفراً عند وقوع أي خطيئة ليمحوها الله.", ["ما من عبد يذنب ذنبا فيحسن الطهور ثم يقوم فيصلي ركعتين"], 4, "صلاة وعبادات", 10),
         (90, "محاسبة النفس الصادقة قبل المنام", "مراجعة أعمال اليوم والتوبة من التقصير والاستغفار والعفو عن كل من أساء إليك قبل النوم.", ["حاسبوا انفسكم قبل ان تحاسبوا"], 4, "أعمال القلوب", 10),
 
-        # --- LEVEL 5 (91-100): أعلى مراتب الالتزام والمجاهدة (30-60 دقيقة فأكثر) ---
+        # --- LEVEL 5 (91-100) ---
         (91, "صيام داود عليه السلام (يوم ويوم)", "صيام يوم وإفطار يوم لمن يقوى على ذلك وهو أحب الصيام وأعدله إلى الله تعالى.", ["احب الصيام الي الله صيام داود كان يصوم يوما ويفطر يوما"], 5, "صيام وتطوع", 30),
         (92, "قيام ثلث الليل الطويل بترتيل خاشع", "النوم في نصف الليل والقيام في ثلثه ترتيلاً للقرآن وتدبراً للآيات والركوع الطويل.", ["يقوم ثلثه وينام سدسه"], 5, "صلاة وعبادات", 60),
         (93, "صلة القاطع والإحسان للمسيء", "مواساة وصلة الأقارب الذين يقاطعونك ومقابلة الإساءة بالصفح والهدية والإحسان.", ["ليس الواصل بالمكافئ ولكن الواصل الذي اذا قطعت رحمه وصلها"], 5, "أعمال القلوب", 30),
@@ -281,6 +332,14 @@ def main():
     )
     """)
 
+    # Also Room master table
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS room_master_table (
+        id INTEGER PRIMARY KEY,
+        identity_hash TEXT
+    )
+    """)
+
     print(f"Batch inserting {len(all_hadiths)} Hadiths...")
     cur.executemany("""
     INSERT INTO Hadith (
@@ -299,7 +358,6 @@ def main():
     """, all_sunnah_rows)
 
     print("Linking verified agreed-upon hadiths...")
-    # Link Bukhari 1 to Muslim niyyah
     cur.execute("SELECT id FROM Hadith WHERE collection='SAHIH_MUSLIM' AND arabicText LIKE '%الأعمال بالنيات%' LIMIT 1")
     row = cur.fetchone()
     if row:
@@ -316,6 +374,14 @@ def main():
     VALUES (1, 1, '[]', 0, 0, NULL, date('now'))
     """)
 
+    conn.commit()
+    # Check integrity
+    print("Verifying database integrity...")
+    integrity = cur.execute("PRAGMA integrity_check;").fetchall()
+    print("Integrity check result:", integrity)
+
+    # Vacuum and optimize
+    cur.execute("VACUUM;")
     conn.commit()
     conn.close()
 
