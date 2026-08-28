@@ -1,0 +1,7 @@
+{
+  "name": "سُنّة",
+  "description": "تطبيق سُنّة - تذكير يومي بالسنن النبوية الشريفة والبحث في صحيح البخاري وصحيح مسلم بدون إنترنت",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
+
