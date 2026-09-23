@@ -19,8 +19,8 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Prepare bundled Room database
-        run: python3 data/scripts/prepare_room_database.py
+      - name: Generate Room-compatible bundled database
+        run: python3 data/scripts/generate_complete_db.py
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
