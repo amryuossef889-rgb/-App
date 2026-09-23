@@ -19,8 +19,17 @@ jobs:
           distribution: temurin
           java-version: '17'
 
-      - name: Generate Room-compatible bundled database
-        run: python3 data/scripts/generate_complete_db.py
+      - name: Validate bundled database exists
+        run: |
+          test -f app/src/main/assets/databases/sunnah.db
+          python3 - <<'PY'
+          import sqlite3
+          db = "app/src/main/assets/databases/sunnah.db"
+          con = sqlite3.connect(db)
+          print("Existing bundled DB:", db)
+          print("SQLite integrity:", con.execute("PRAGMA integrity_check").fetchone()[0])
+          con.close()
+          PY
 
       - name: Set up Gradle
         uses: gradle/actions/setup-gradle@v4
