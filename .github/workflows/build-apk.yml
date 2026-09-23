@@ -43,16 +43,16 @@ jobs:
         shell: bash
         run: |
           set -euo pipefail
-          HASH="$(grep -RhoE 'identityHash = "[0-9a-fA-F]+"' app/build/generated 2>/dev/null | head -n 1 | sed -E 's/.*"([0-9a-fA-F]+)".*/\1/')"
+          echo "Searching generated Room sources for identity metadata..."
+          grep -RniE 'identityHash|identity_hash|room_master_table' app/build/generated 2>/dev/null | head -n 50 || true
+          HASH="$(grep -RhoE '[0-9a-fA-F]{32}' app/build/generated 2>/dev/null | head -n 1 || true)"
           if [ -z "$HASH" ]; then
-            echo "ERROR: Could not find Room identity hash in generated sources."
-            echo "Generated files:"
+            echo "ERROR: Could not find a 32-character Room hash in generated sources."
             find app/build/generated -type f | head -n 100 || true
             exit 1
           fi
-          echo "Found Room identity hash: $HASH"
+          echo "Found candidate Room hash: $HASH"
           ROOM_IDENTITY_HASH="$HASH" python3 data/scripts/patch_room_identity.py
-
       - name: Verify bundled database schema
         run: |
           python3 - <<'PY'
