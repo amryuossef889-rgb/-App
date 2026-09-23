@@ -4,12 +4,18 @@ import os
 import re
 
 def sanitize_json(text):
-    """Repair unescaped quotes/control characters found in exported datasets."""
+    """Repair malformed exported JSON while preserving valid JSON structure."""
     out = []
     in_str = False
     escaped = False
+    string_start = 0
     i = 0
     n = len(text)
+
+    def next_nonspace(pos):
+        while pos < n and text[pos].isspace():
+            pos += 1
+        return pos
 
     while i < n:
         c = text[i]
@@ -17,6 +23,7 @@ def sanitize_json(text):
         if not in_str:
             if c == '"':
                 in_str = True
+                string_start = i + 1
             out.append(c)
             i += 1
             continue
@@ -46,10 +53,35 @@ def sanitize_json(text):
             continue
 
         if c == '"':
-            j = i + 1
-            while j < n and text[j].isspace():
-                j += 1
-            if j >= n or text[j] in ',]}:':
+            j = next_nonspace(i + 1)
+            content = text[string_start:i]
+
+            # A colon can only follow a JSON object key, not a value.
+            # Therefore a quote followed by ':' inside a value is literal.
+            if j < n and text[j] == ':':
+                is_key = bool(re.fullmatch(r'[A-Za-z_][A-Za-z0-9_]*', content))
+                if is_key:
+                    in_str = False
+                    out.append(c)
+                else:
+                    out.append('\\\"')
+                i += 1
+                continue
+
+            if j < n and text[j] == ',':
+                k = next_nonspace(j + 1)
+                # A real JSON value terminator is followed by the next key/value
+                # quote or by the end of its containing object/array. If normal
+                # text follows the comma, this quote was part of the sentence.
+                if k < n and text[k] in '"}]':
+                    in_str = False
+                    out.append(c)
+                else:
+                    out.append('\\\"')
+                i += 1
+                continue
+
+            if j >= n or text[j] in '}]':
                 in_str = False
                 out.append(c)
             else:
@@ -72,8 +104,11 @@ def sanitize_json(text):
         out.append(c)
         i += 1
 
+    # Do not silently discard data. If the source really ends inside a value,
+    # close that value so json.loads can report the exact remaining problem.
     if in_str:
-        raise ValueError("Unterminated JSON string after sanitization")
+        out.append('"')
+
     return ''.join(out)
 
 def load_json_dataset(path):
