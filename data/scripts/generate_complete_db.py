@@ -114,8 +114,51 @@ def sanitize_json(text):
 def load_json_dataset(path):
     with open(path, 'rb') as f:
         raw_text = f.read().decode('utf-8', errors='ignore')
+
     sanitized = sanitize_json(raw_text)
-    return json.loads(sanitized)
+
+    # Some exports contain a few ambiguous quotes that cannot be identified
+    # from local context alone. Let the standard JSON parser point to the
+    # exact failure, then escape the nearest quote that is followed by normal
+    # text. Repeat until the complete document parses.
+    for _ in range(2000):
+        try:
+            return json.loads(sanitized)
+        except json.JSONDecodeError as exc:
+            pos = exc.pos
+            candidate = None
+            lower = max(0, pos - 2000)
+            for q in range(pos - 1, lower - 1, -1):
+                if sanitized[q] != '"':
+                    continue
+
+                # Ignore already escaped quotes.
+                slash_count = 0
+                p = q - 1
+                while p >= 0 and sanitized[p] == '\\':
+                    slash_count += 1
+                    p -= 1
+                if slash_count % 2:
+                    continue
+
+                nxt = q + 1
+                while nxt < len(sanitized) and sanitized[nxt].isspace():
+                    nxt += 1
+
+                # A quote followed by ordinary text is the malformed quote
+                # that caused the parser to lose the string boundary.
+                if nxt < len(sanitized) and sanitized[nxt] not in ',]}:':
+                    candidate = q
+                    break
+
+            if candidate is None:
+                raise ValueError(
+                    f"Unable to repair JSON in {path}: {exc.msg} at character {exc.pos}"
+                ) from exc
+
+            sanitized = sanitized[:candidate] + '\\\"' + sanitized[candidate + 1:]
+
+    raise ValueError(f"Unable to repair JSON in {path}: too many malformed quotes")
 
 def strip_tashkeel(text):
     if not text:
