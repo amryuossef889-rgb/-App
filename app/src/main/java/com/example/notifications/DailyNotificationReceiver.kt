@@ -19,22 +19,32 @@ class DailyNotificationReceiver : BroadcastReceiver() {
                 val userProgress = db.userProgressDao().getUserProgressDirect()
                 val currentSunnahId = userProgress?.currentSunnahId ?: 1
                 val currentSunnah = db.sunnahDao().getSunnahWithHadithDirect(currentSunnahId)
-
-                NotificationHelper.showDailySunnahNotification(
-                    context = context,
-                    sunnahId = currentSunnahId,
-                    sunnahTitle = currentSunnah?.sunnah?.title
-                )
-
-                // Reschedule for next day
                 val settingsRepo = SettingsRepository(context)
                 val settings = settingsRepo.settingsFlow.first()
-                if (settings.reminderEnabled) {
-                    NotificationHelper.scheduleDailyAlarm(
-                        context,
-                        settings.reminderHour,
-                        settings.reminderMinute
+
+                if (intent.action == NotificationHelper.ACTION_REFRESH_PERSISTENT) {
+                    if (settings.persistentSunnahEnabled) {
+                        NotificationHelper.showPersistentSunnahNotification(
+                            context = context,
+                            sunnahId = currentSunnahId,
+                            sunnahTitle = currentSunnah?.sunnah?.title
+                        )
+                        NotificationHelper.schedulePersistentSunnahRefresh(context)
+                    }
+                } else {
+                    NotificationHelper.showDailySunnahNotification(
+                        context = context,
+                        sunnahId = currentSunnahId,
+                        sunnahTitle = currentSunnah?.sunnah?.title
                     )
+
+                    if (settings.reminderEnabled) {
+                        NotificationHelper.scheduleDailyAlarm(
+                            context,
+                            settings.reminderHour,
+                            settings.reminderMinute
+                        )
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
