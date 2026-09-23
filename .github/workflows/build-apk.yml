@@ -37,7 +37,7 @@ jobs:
           gradle-version: '9.3.1'
 
       - name: Generate Room code
-        run: gradle --no-daemon compileDebugKotlin
+        run: gradle --no-daemon clean compileDebugKotlin --rerun-tasks
 
       - name: Patch bundled database with Room identity hash
         shell: bash
