@@ -3,6 +3,7 @@ package com.example.notifications
 import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
+import com.example.data.database.AppDatabase
 import com.example.data.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -28,6 +29,15 @@ class BootReceiver : BroadcastReceiver() {
                         )
                     }
                     if (settings.persistentSunnahEnabled) {
+                        val db = AppDatabase.getInstance(context)
+                        val userProgress = db.userProgressDao().getUserProgressDirect()
+                        val currentSunnahId = userProgress?.currentSunnahId ?: 1
+                        val currentSunnah = db.sunnahDao().getSunnahWithHadithDirect(currentSunnahId)
+                        NotificationHelper.showPersistentSunnahNotification(
+                            context,
+                            currentSunnahId,
+                            currentSunnah?.sunnah?.title
+                        )
                         NotificationHelper.schedulePersistentSunnahRefresh(context)
                     } else {
                         NotificationHelper.cancelPersistentSunnahRefresh(context)
