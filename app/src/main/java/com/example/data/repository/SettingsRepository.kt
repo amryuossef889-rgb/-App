@@ -39,7 +39,8 @@ data class AppSettings(
     val fontSize: AppFontSize = AppFontSize.MEDIUM,
     val reminderEnabled: Boolean = true,
     val reminderHour: Int = 20, // 8:00 PM
-    val reminderMinute: Int = 0
+    val reminderMinute: Int = 0,
+    val persistentSunnahEnabled: Boolean = false
 )
 
 class SettingsRepository(private val context: Context) {
@@ -53,6 +54,7 @@ class SettingsRepository(private val context: Context) {
         private val KEY_REMINDER_ENABLED = booleanPreferencesKey("reminder_enabled")
         private val KEY_REMINDER_HOUR = intPreferencesKey("reminder_hour")
         private val KEY_REMINDER_MINUTE = intPreferencesKey("reminder_minute")
+        private val KEY_PERSISTENT_SUNNAH_ENABLED = booleanPreferencesKey("persistent_sunnah_enabled")
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { preferences ->
@@ -70,7 +72,8 @@ class SettingsRepository(private val context: Context) {
             fontSize = runCatching { AppFontSize.valueOf(fontSizeStr) }.getOrDefault(AppFontSize.MEDIUM),
             reminderEnabled = preferences[KEY_REMINDER_ENABLED] ?: true,
             reminderHour = preferences[KEY_REMINDER_HOUR] ?: 20,
-            reminderMinute = preferences[KEY_REMINDER_MINUTE] ?: 0
+            reminderMinute = preferences[KEY_REMINDER_MINUTE] ?: 0,
+            persistentSunnahEnabled = preferences[KEY_PERSISTENT_SUNNAH_ENABLED] ?: false
         )
     }
 
@@ -111,6 +114,12 @@ class SettingsRepository(private val context: Context) {
     suspend fun updateFontSize(size: AppFontSize) {
         context.dataStore.edit { preferences ->
             preferences[KEY_FONT_SIZE] = size.name
+        }
+    }
+
+    suspend fun updatePersistentSunnahEnabled(enabled: Boolean) {
+        context.dataStore.edit { preferences ->
+            preferences[KEY_PERSISTENT_SUNNAH_ENABLED] = enabled
         }
     }
 
