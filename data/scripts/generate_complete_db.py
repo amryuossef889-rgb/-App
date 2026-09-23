@@ -152,6 +152,23 @@ def load_json_dataset(path):
                     break
 
             if candidate is None:
+                # If the error is at the beginning of the next JSON token,
+                # the malformed quote is commonly the immediately preceding
+                # unescaped quote (especially when the literal quote was
+                # followed by a comma inside Arabic prose).
+                for q in range(pos - 1, lower - 1, -1):
+                    if sanitized[q] != '"':
+                        continue
+                    slash_count = 0
+                    p = q - 1
+                    while p >= 0 and sanitized[p] == '\\':
+                        slash_count += 1
+                        p -= 1
+                    if slash_count % 2 == 0:
+                        candidate = q
+                        break
+
+            if candidate is None:
                 raise ValueError(
                     f"Unable to repair JSON in {path}: {exc.msg} at character {exc.pos}"
                 ) from exc
