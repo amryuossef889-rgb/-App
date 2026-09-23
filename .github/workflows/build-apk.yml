@@ -27,6 +27,93 @@ jobs:
         with:
           gradle-version: '9.3.1'
 
+      - name: Generate Room code
+        run: gradle --no-daemon compileDebugKotlin
+
+      - name: Patch bundled database with Room identity hash
+        shell: bash
+        run: |
+          set -euo pipefail
+          HASH="$(grep -RhoE 'identityHash = "[0-9a-fA-F]+"' app/build/generated 2>/dev/null | head -n 1 | sed -E 's/.*"([0-9a-fA-F]+)".*/\1/')"
+          if [ -z "$HASH" ]; then
+            echo "ERROR: Could not find Room identity hash in generated sources."
+            echo "Generated files:"
+            find app/build/generated -type f | head -n 100 || true
+            exit 1
+          fi
+          echo "Found Room identity hash: $HASH"
+          ROOM_IDENTITY_HASH="$HASH" python3 data/scripts/patch_room_identity.py
+
+      - name: Verify bundled database schema
+        run: |
+          python3 - <<'PY'
+          import sqlite3
+          db = "app/src/main/assets/databases/sunnah.db"
+          con = sqlite3.connect(db)
+          cur = con.cursor()
+          required = {
+              "Hadith": {
+                  "id": "INTEGER NOT NULL PRIMARY KEY",
+                  "collection": "TEXT NOT NULL",
+                  "book": "TEXT NOT NULL",
+                  "chapter": "TEXT NOT NULL",
+                  "hadithNumber": "INTEGER NOT NULL",
+                  "narrator": "TEXT NOT NULL",
+                  "arabicText": "TEXT NOT NULL",
+                  "sourceReference": "TEXT NOT NULL",
+                  "authenticity": "TEXT NOT NULL",
+                  "isAgreedUpon": "INTEGER NOT NULL",
+                  "linkedHadithId": "INTEGER",
+                  "rawId": "INTEGER NOT NULL",
+                  "chapterId": "INTEGER NOT NULL",
+                  "bookId": "INTEGER NOT NULL",
+              },
+              "Sunnah": {
+                  "id": "INTEGER NOT NULL PRIMARY KEY",
+                  "title": "TEXT NOT NULL",
+                  "description": "TEXT NOT NULL",
+                  "hadithId": "INTEGER NOT NULL",
+                  "difficulty": "INTEGER NOT NULL",
+                  "category": "TEXT NOT NULL",
+                  "estimatedMinutes": "INTEGER NOT NULL",
+                  "orderIndex": "INTEGER NOT NULL",
+                  "isActive": "INTEGER NOT NULL",
+              },
+              "UserProgress": {
+                  "id": "INTEGER NOT NULL PRIMARY KEY",
+                  "currentSunnahId": "INTEGER NOT NULL",
+                  "completedSunnahs": "TEXT NOT NULL",
+                  "currentStreak": "INTEGER NOT NULL",
+                  "longestStreak": "INTEGER NOT NULL",
+                  "lastCompletedDate": "TEXT",
+                  "startedDate": "TEXT NOT NULL",
+              },
+              "PdfBook": {
+                  "id": "INTEGER NOT NULL PRIMARY KEY",
+                  "title": "TEXT NOT NULL",
+                  "description": "TEXT NOT NULL",
+                  "filename": "TEXT NOT NULL",
+                  "size": "INTEGER NOT NULL",
+                  "addedDate": "INTEGER NOT NULL",
+                  "isBuiltin": "INTEGER NOT NULL",
+              },
+          }
+          for table, expected in required.items():
+              rows = cur.execute(f"PRAGMA table_info({table})").fetchall()
+              actual = {}
+              for _, name, typ, notnull, _, pk in rows:
+                  actual[name] = f"{typ} {'NOT NULL ' if notnull else ''}{'PRIMARY KEY' if pk else ''}".strip()
+              if actual != expected:
+                  raise SystemExit(f"Schema mismatch for {table}: {actual}")
+          identity = cur.execute("SELECT identity_hash FROM room_master_table WHERE id=42").fetchone()
+          if not identity or not identity[0]:
+              raise SystemExit("Room identity hash missing")
+          print("Room identity hash:", identity[0])
+          print("Bundled Room schema verification: OK")
+          print("SQLite integrity:", cur.execute("PRAGMA integrity_check").fetchone()[0])
+          con.close()
+          PY
+
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
 
