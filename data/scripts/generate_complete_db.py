@@ -4,55 +4,76 @@ import os
 import re
 
 def sanitize_json(text):
+    """Repair unescaped quotes/control characters found in exported datasets."""
     out = []
     in_str = False
     escaped = False
     i = 0
     n = len(text)
+
     while i < n:
         c = text[i]
+
         if not in_str:
             if c == '"':
                 in_str = True
             out.append(c)
             i += 1
-        else:
-            if escaped:
-                out.append(c)
-                escaped = False
-                i += 1
-            else:
-                if c == '\\':
-                    if i + 1 < n:
-                        next_c = text[i+1]
-                        if next_c in '"/\\bfnrt':
-                            out.append(c)
-                            escaped = True
-                        elif next_c == 'u' and i + 5 < n and all(ch in '0123456789abcdefABCDEF' for ch in text[i+2:i+6]):
-                            out.append(c)
-                            escaped = True
-                        else:
-                            out.append('\\\\')
-                    else:
-                        out.append('\\\\')
-                    i += 1
-                elif c == '"':
-                    in_str = False
+            continue
+
+        if escaped:
+            out.append(c)
+            escaped = False
+            i += 1
+            continue
+
+        if c == '\\':
+            if i + 1 < n:
+                next_c = text[i + 1]
+                if next_c in '"\\/bfnrt':
                     out.append(c)
-                    i += 1
-                elif ord(c) < 32:
-                    if c == '\n':
-                        out.append('\\n')
-                    elif c == '\r':
-                        out.append('\\r')
-                    elif c == '\t':
-                        out.append('\\t')
-                    else:
-                        out.append(f'\\u{ord(c):04x}')
-                    i += 1
+                    escaped = True
+                elif next_c == 'u' and i + 5 < n and all(
+                    ch in '0123456789abcdefABCDEF' for ch in text[i + 2:i + 6]
+                ):
+                    out.append(c)
+                    escaped = True
                 else:
-                    out.append(c)
-                    i += 1
+                    out.append('\\\\')
+            else:
+                out.append('\\\\')
+            i += 1
+            continue
+
+        if c == '"':
+            j = i + 1
+            while j < n and text[j].isspace():
+                j += 1
+            if j >= n or text[j] in ',]}:':
+                in_str = False
+                out.append(c)
+            else:
+                out.append('\\\"')
+            i += 1
+            continue
+
+        if ord(c) < 32:
+            if c == '\\n':
+                out.append('\\\\n')
+            elif c == '\\r':
+                out.append('\\\\r')
+            elif c == '\\t':
+                out.append('\\\\t')
+            else:
+                out.append(f'\\\\u{ord(c):04x}')
+            i += 1
+            continue
+
+        out.append(c)
+        i += 1
+
+    if in_str:
+        raise ValueError("Unterminated JSON string after sanitization")
     return ''.join(out)
 
 def load_json_dataset(path):
