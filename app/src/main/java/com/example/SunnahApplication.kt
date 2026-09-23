@@ -29,6 +29,17 @@ class SunnahApplication : Application() {
                         settings.reminderMinute
                     )
                 }
+                if (settings.persistentSunnahEnabled) {
+                    val userProgress = database.userProgressDao().getUserProgressDirect()
+                    val currentSunnahId = userProgress?.currentSunnahId ?: 1
+                    val currentSunnah = database.sunnahDao().getSunnahWithHadithDirect(currentSunnahId)
+                    NotificationHelper.showPersistentSunnahNotification(
+                        this@SunnahApplication,
+                        currentSunnahId,
+                        currentSunnah?.sunnah?.title
+                    )
+                    NotificationHelper.schedulePersistentSunnahRefresh(this@SunnahApplication)
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
