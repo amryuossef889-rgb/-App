@@ -27,6 +27,12 @@ class BootReceiver : BroadcastReceiver() {
                             settings.reminderMinute
                         )
                     }
+                    if (settings.persistentSunnahEnabled) {
+                        NotificationHelper.schedulePersistentSunnahRefresh(context)
+                    } else {
+                        NotificationHelper.cancelPersistentSunnahRefresh(context)
+                        NotificationHelper.cancelPersistentSunnahNotification(context)
+                    }
                 } catch (e: Exception) {
                     e.printStackTrace()
                 } finally {
