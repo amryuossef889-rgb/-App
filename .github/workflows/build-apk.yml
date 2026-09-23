@@ -39,6 +39,9 @@ jobs:
       - name: Generate Room code
         run: gradle --no-daemon clean compileDebugKotlin --rerun-tasks
 
+      - name: Repair bundled database Room schema
+        run: python3 data/scripts/repair_bundled_db_schema.py
+
       - name: Patch bundled database with Room identity hash
         shell: bash
         run: |
