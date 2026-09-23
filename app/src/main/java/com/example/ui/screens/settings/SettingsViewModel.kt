@@ -64,6 +64,27 @@ class SettingsViewModel(
         }
     }
 
+    fun updatePersistentSunnah(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsRepository.updatePersistentSunnahEnabled(enabled)
+            if (enabled) {
+                val db = com.example.data.database.AppDatabase.getInstance(context)
+                val userProgress = db.userProgressDao().getUserProgressDirect()
+                val currentSunnahId = userProgress?.currentSunnahId ?: 1
+                val currentSunnah = db.sunnahDao().getSunnahWithHadithDirect(currentSunnahId)
+                NotificationHelper.showPersistentSunnahNotification(
+                    context,
+                    currentSunnahId,
+                    currentSunnah?.sunnah?.title
+                )
+                NotificationHelper.schedulePersistentSunnahRefresh(context)
+            } else {
+                NotificationHelper.cancelPersistentSunnahRefresh(context)
+                NotificationHelper.cancelPersistentSunnahNotification(context)
+            }
+        }
+    }
+
     fun updateReminder(enabled: Boolean, hour: Int, minute: Int) {
         viewModelScope.launch {
             settingsRepository.updateReminderSettings(enabled, hour, minute)
