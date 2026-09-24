@@ -39,6 +39,10 @@ class SunnahApplication : Application() {
                         currentSunnah?.sunnah?.title
                     )
                     NotificationHelper.schedulePersistentSunnahRefresh(this@SunnahApplication)
+                    if (android.os.Build.VERSION.SDK_INT < android.os.Build.VERSION_CODES.M ||
+                        android.provider.Settings.canDrawOverlays(this@SunnahApplication)) {
+                        com.example.notifications.SunnahOverlayService.start(this@SunnahApplication)
+                    }
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
