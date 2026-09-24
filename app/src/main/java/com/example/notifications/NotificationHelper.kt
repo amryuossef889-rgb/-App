@@ -215,7 +215,7 @@ object NotificationHelper {
                     pendingIntent
                 )
             } else {
-                alarmManager.setExact(calendar.timeInMillis, pendingIntent)
+                alarmManager.setExact(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
             }
         } catch (e: SecurityException) {
             alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
