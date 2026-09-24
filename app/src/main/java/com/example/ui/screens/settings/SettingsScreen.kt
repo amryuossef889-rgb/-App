@@ -1,9 +1,13 @@
 package com.example.ui.screens.settings
 
 import android.net.Uri
+import android.content.Intent
+import android.provider.Settings
 import android.widget.Toast
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.lifecycle.Lifecycle
+import androidx.lifecycle.LifecycleEventObserver
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -50,6 +54,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalLifecycleOwner
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
@@ -73,6 +78,23 @@ fun SettingsScreen(
     var showTimeDialog by remember { mutableStateOf(false) }
     var selectedHour by remember { mutableIntStateOf(settings.reminderHour) }
     var selectedMinute by remember { mutableIntStateOf(settings.reminderMinute) }
+
+    val lifecycleOwner = LocalLifecycleOwner.current
+    val overlayPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) {
+        if (viewModel.isOverlayPermissionGranted()) {
+            viewModel.updatePersistentSunnah(true)
+        }
+    }
+
+    androidx.compose.runtime.DisposableEffect(lifecycleOwner, settings.persistentSunnahEnabled) {
+        val observer = LifecycleEventObserver { _, event ->
+            if (event == Lifecycle.Event.ON_RESUME) viewModel.syncPersistentOverlay()
+        }
+        lifecycleOwner.lifecycle.addObserver(observer)
+        onDispose { lifecycleOwner.lifecycle.removeObserver(observer) }
+    }
 
     val imagePickerLauncher = rememberLauncherForActivityResult(
         contract = ActivityResultContracts.GetContent()
@@ -453,7 +475,15 @@ fun SettingsScreen(
                         Switch(
                             checked = settings.persistentSunnahEnabled,
                             onCheckedChange = { enabled ->
-                                viewModel.updatePersistentSunnah(enabled)
+                                if (enabled && !viewModel.isOverlayPermissionGranted()) {
+                                    val overlayIntent = Intent(
+                                        Settings.ACTION_MANAGE_OVERLAY_PERMISSION,
+                                        Uri.parse("package:" + context.packageName)
+                                    )
+                                    overlayPermissionLauncher.launch(overlayIntent)
+                                } else {
+                                    viewModel.updatePersistentSunnah(enabled)
+                                }
                             },
                             colors = SwitchDefaults.colors(
                                 checkedThumbColor = MaterialTheme.colorScheme.onPrimary,
