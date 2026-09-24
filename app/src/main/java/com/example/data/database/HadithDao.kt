@@ -15,11 +15,15 @@ interface HadithDao {
 
     @Query("""
         SELECT * FROM Hadith 
-        WHERE arabicText LIKE '%' || :query || '%' 
-           OR narrator LIKE '%' || :query || '%' 
-           OR book LIKE '%' || :query || '%' 
-           OR sourceReference LIKE '%' || :query || '%'
-           OR CAST(hadithNumber AS TEXT) = :query
+        WHERE LENGTH(TRIM(:query)) > 0
+          AND (
+              arabicText LIKE '%' || TRIM(:query) || '%'
+              OR narrator LIKE '%' || TRIM(:query) || '%'
+              OR book LIKE '%' || TRIM(:query) || '%'
+              OR chapter LIKE '%' || TRIM(:query) || '%'
+              OR sourceReference LIKE '%' || TRIM(:query) || '%'
+              OR CAST(hadithNumber AS TEXT) LIKE '%' || TRIM(:query) || '%'
+          )
         ORDER BY id ASC 
         LIMIT 100
     """)
@@ -27,11 +31,16 @@ interface HadithDao {
 
     @Query("""
         SELECT * FROM Hadith 
-        WHERE collection = :collection 
-          AND (arabicText LIKE '%' || :query || '%' 
-               OR narrator LIKE '%' || :query || '%' 
-               OR book LIKE '%' || :query || '%'
-               OR CAST(hadithNumber AS TEXT) = :query)
+        WHERE collection = :collection
+          AND LENGTH(TRIM(:query)) > 0
+          AND (
+              arabicText LIKE '%' || TRIM(:query) || '%'
+              OR narrator LIKE '%' || TRIM(:query) || '%'
+              OR book LIKE '%' || TRIM(:query) || '%'
+              OR chapter LIKE '%' || TRIM(:query) || '%'
+              OR sourceReference LIKE '%' || TRIM(:query) || '%'
+              OR CAST(hadithNumber AS TEXT) LIKE '%' || TRIM(:query) || '%'
+          )
         ORDER BY id ASC 
         LIMIT 100
     """)
