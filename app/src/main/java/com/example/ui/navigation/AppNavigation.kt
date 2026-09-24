@@ -35,6 +35,7 @@ import com.example.ui.screens.library.AdminLibraryScreen
 import com.example.ui.screens.library.LibraryScreen
 import com.example.ui.screens.library.LibraryViewModel
 import com.example.ui.screens.library.PdfReaderScreen
+import com.example.ui.screens.progress.ProgressScreen
 import com.example.ui.screens.search.SearchScreen
 import com.example.ui.screens.search.SearchViewModel
 import com.example.ui.screens.settings.SettingsScreen
@@ -86,6 +87,7 @@ fun AppNavigation(
         currentRoute == Screen.Search.route -> "البحث في الأحاديث"
         currentRoute == Screen.Library.route -> "مكتبة الكتب الفقهية"
         currentRoute == Screen.Settings.route -> "الإعدادات والمظهر"
+        currentRoute == Screen.Progress.route -> "الإحصائيات والإنجازات"
         currentRoute == Screen.AdminLibrary.route -> "لوحة إدارة الكتب"
         currentRoute?.startsWith("sunnah_detail") == true -> "تفاصيل السُنّة النبوية"
         currentRoute?.startsWith("pdf_reader") == true -> {
@@ -237,6 +239,17 @@ fun AppNavigation(
                             title = title,
                             filename = filename,
                             onNavigateBack = { navController.navigateUp() }
+                        )
+                    }
+
+
+                    // Progress and achievements
+                    composable(Screen.Progress.route) {
+                        val progress by app.sunnahRepository.getUserProgress().collectAsState(initial = null)
+                        val sunnahs by app.sunnahRepository.getAllSunnahsWithHadith().collectAsState(initial = emptyList())
+                        ProgressScreen(
+                            progress = progress,
+                            sunnahs = sunnahs
                         )
                     }
 
