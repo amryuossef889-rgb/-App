@@ -66,17 +66,15 @@ def difficulty_for(text):
         return 4
     return 3
 
-def is_prophetic_hadith(text):
+def is_source_hadith(text):
     hay = normalize(text)
-    prophetic_markers = [
-        "قال رسول الله", "قال النبي", "عن النبي", "عن رسول الله",
-        "ان النبي", "ان رسول الله", "كان رسول الله", "كان النبي",
-        "رايت رسول الله", "رايت النبي", "امر رسول الله", "امر النبي",
-        "نهى رسول الله", "نهى النبي", "فعل رسول الله", "فعل النبي",
-        "سنة رسول الله", "هدي رسول الله", "قيل لرسول الله", "قيل للنبي",
-        "سأل رسول الله", "سأل النبي", "اخبر رسول الله", "اخبر النبي",
+    # The record must explicitly refer to the Prophet ﷺ in the Arabic source text.
+    # The app stores the source text itself and never invents a religious wording.
+    prophet_markers = [
+        "رسول الله", "النبي", "الرسول",
+        "صلى الله عليه وسلم", "عليه الصلاة والسلام",
     ]
-    return len(hay) >= 40 and any(marker in hay for marker in prophetic_markers)
+    return len(hay) >= 40 and any(marker in hay for marker in prophet_markers)
 
 def load_sources():
     records = []
@@ -96,7 +94,7 @@ def load_sources():
 
             for hadith in hadiths:
                 arabic = (hadith.get("arabic") or "").strip()
-                if not is_prophetic_hadith(arabic):
+                if not is_source_hadith(arabic):
                     continue
 
                 raw_id = int(hadith.get("id", 0))
@@ -206,9 +204,9 @@ def make_sunnah_values(sid, hadith_id, source):
     category = category_for(source["arabic"])
     return (
         sid,
-        f"حديث نبوي موثّق — {category}",
+        f"حديث موثّق — {category}",
         f"النص المعروض مأخوذ مباشرة من {source['book']} في المرجع المذكور. "
-        "التصنيف حسب السهولة هنا تنظيمي داخل التطبيق فقط، ولا يمثل حكمًا على منزلة الحديث أو فضله.",
+        "هذا الإدراج لا يضيف نصًا أو حكمًا شرعيًا من عند التطبيق، والتصنيف حسب السهولة تنظيمي فقط.",
         hadith_id,
         level,
         category,
