@@ -288,6 +288,7 @@ def main():
         source = assignments.get(hid)
         if not source:
             raise SystemExit(f"Sunnah {sid} points to missing Hadith {hid}.")
+        values = make_sunnah_values(sid, hid, source)
         cur.execute(
             """
             UPDATE Sunnah
@@ -295,7 +296,10 @@ def main():
                 estimatedMinutes=?, orderIndex=?, isActive=1
             WHERE id=?
             """,
-            make_sunnah_values(sid, hid, source)[:-1] + (sid,),
+            (
+                values[1], values[2], values[3], values[4],
+                values[5], values[6], values[7], sid
+            ),
         )
 
     # Append source-verified rows until exactly TARGET_SUNNAHS Sunnahs exist.
