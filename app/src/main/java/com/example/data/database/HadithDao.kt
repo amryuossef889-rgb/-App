@@ -17,11 +17,11 @@ interface HadithDao {
         SELECT * FROM Hadith 
         WHERE LENGTH(TRIM(:query)) > 0
           AND (
-              arabicText LIKE '%' || TRIM(:query) || '%'
-              OR narrator LIKE '%' || TRIM(:query) || '%'
-              OR book LIKE '%' || TRIM(:query) || '%'
-              OR chapter LIKE '%' || TRIM(:query) || '%'
-              OR sourceReference LIKE '%' || TRIM(:query) || '%'
+              REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(arabicText, 'ً', ''), 'ٌ', ''), 'ٍ', ''), 'َ', ''), 'ُ', ''), 'ِ', ''), 'ّ', ''), 'ْ', '') LIKE '%' || TRIM(:query) || '%'
+              OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(narrator, 'ً', ''), 'ٌ', ''), 'ٍ', ''), 'َ', ''), 'ُ', ''), 'ِ', ''), 'ّ', ''), 'ْ', '') LIKE '%' || TRIM(:query) || '%'
+              OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(book, 'ً', ''), 'ٌ', ''), 'ٍ', ''), 'َ', ''), 'ُ', ''), 'ِ', ''), 'ّ', ''), 'ْ', '') LIKE '%' || TRIM(:query) || '%'
+              OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(chapter, 'ً', ''), 'ٌ', ''), 'ٍ', ''), 'َ', ''), 'ُ', ''), 'ِ', ''), 'ّ', ''), 'ْ', '') LIKE '%' || TRIM(:query) || '%'
+              OR REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(REPLACE(sourceReference, 'ً', ''), 'ٌ', ''), 'ٍ', ''), 'َ', ''), 'ُ', ''), 'ِ', ''), 'ّ', ''), 'ْ', '') LIKE '%' || TRIM(:query) || '%'
               OR CAST(hadithNumber AS TEXT) LIKE '%' || TRIM(:query) || '%'
           )
         ORDER BY id ASC 
