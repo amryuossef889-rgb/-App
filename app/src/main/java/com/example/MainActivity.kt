@@ -1,5 +1,7 @@
 package com.example
 
+import android.content.res.Configuration
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -13,9 +15,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.ui.navigation.AppNavigation
 import com.example.ui.screens.settings.SettingsViewModel
 import com.example.ui.theme.SunnahTheme
+import java.util.Locale
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
+        applyArabicLocale()
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
 
@@ -35,6 +39,21 @@ class MainActivity : ComponentActivity() {
                     AppNavigation(settingsViewModel = settingsViewModel)
                 }
             }
+        }
+    }
+
+    private fun applyArabicLocale() {
+        val arabic = Locale.forLanguageTag("ar-EG")
+        Locale.setDefault(arabic)
+
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            getSystemService(android.app.LocaleManager::class.java)
+                ?.applicationLocales = android.os.LocaleList.forLanguageTags("ar-EG")
+        } else {
+            val configuration = Configuration(resources.configuration)
+            configuration.setLocale(arabic)
+            @Suppress("DEPRECATION")
+            resources.updateConfiguration(configuration, resources.displayMetrics)
         }
     }
 }
