@@ -17,7 +17,7 @@ data class HomeUiState(
     val currentSunnahWithHadith: SunnahWithHadith? = null,
     val userProgress: UserProgress? = null,
     val completedSunnahIds: Set<Int> = emptySet(),
-    val totalSunnahsCount: Int = 100,
+    val totalSunnahsCount: Int = 0,
     val upcomingSunnahs: List<SunnahWithHadith> = emptyList(),
     val isTodayCompleted: Boolean = false,
     val isLoading: Boolean = true
@@ -47,7 +47,7 @@ class HomeViewModel(
             currentSunnahWithHadith = currentSunnah,
             userProgress = progress,
             completedSunnahIds = completedSet,
-            totalSunnahsCount = sunnahs.size.takeIf { it > 0 } ?: 100,
+            totalSunnahsCount = sunnahs.size,
             upcomingSunnahs = upcoming,
             isTodayCompleted = isCompleted,
             isLoading = false
