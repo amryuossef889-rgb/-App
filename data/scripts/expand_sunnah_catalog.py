@@ -66,25 +66,17 @@ def difficulty_for(text):
         return 4
     return 3
 
-def is_prophetic_action_or_guidance(text):
+def is_prophetic_hadith(text):
     hay = normalize(text)
     prophetic_markers = [
         "قال رسول الله", "قال النبي", "عن النبي", "عن رسول الله",
         "ان النبي", "ان رسول الله", "كان رسول الله", "كان النبي",
         "رايت رسول الله", "رايت النبي", "امر رسول الله", "امر النبي",
         "نهى رسول الله", "نهى النبي", "فعل رسول الله", "فعل النبي",
-        "سنة رسول الله", "هدي رسول الله",
+        "سنة رسول الله", "هدي رسول الله", "قيل لرسول الله", "قيل للنبي",
+        "سأل رسول الله", "سأل النبي", "اخبر رسول الله", "اخبر النبي",
     ]
-    action_or_guidance = [
-        "امر", "نهى", "قال", "كان", "اذا", "من كان", "من فعل",
-        "افعلوا", "لا تفعلوا", "صلوا", "صوموا", "اذكروا", "قولوا",
-        "كلوا", "اشربوا", "ناموا", "احب", "كره", "سن",
-    ]
-    return (
-        len(hay) >= 40
-        and any(marker in hay for marker in prophetic_markers)
-        and any(marker in hay for marker in action_or_guidance)
-    )
+    return len(hay) >= 40 and any(marker in hay for marker in prophetic_markers)
 
 def load_sources():
     records = []
@@ -104,7 +96,7 @@ def load_sources():
 
             for hadith in hadiths:
                 arabic = (hadith.get("arabic") or "").strip()
-                if not is_prophetic_action_or_guidance(arabic):
+                if not is_prophetic_hadith(arabic):
                     continue
 
                 raw_id = int(hadith.get("id", 0))
@@ -214,7 +206,7 @@ def make_sunnah_values(sid, hadith_id, source):
     category = category_for(source["arabic"])
     return (
         sid,
-        f"هدي نبوي موثّق — {category}",
+        f"حديث نبوي موثّق — {category}",
         f"النص المعروض مأخوذ مباشرة من {source['book']} في المرجع المذكور. "
         "التصنيف حسب السهولة هنا تنظيمي داخل التطبيق فقط، ولا يمثل حكمًا على منزلة الحديث أو فضله.",
         hadith_id,
