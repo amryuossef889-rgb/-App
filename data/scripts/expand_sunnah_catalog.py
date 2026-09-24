@@ -15,7 +15,7 @@ from pathlib import Path
 from collections import defaultdict
 
 DB = Path("app/src/main/assets/databases/sunnah.db")
-TARGET_SUNNAHS = 1200
+TARGET_SUNNAHS = 1100
 SOURCE_DIRS = [
     ("SAHIH_BUKHARI", Path("data/raw/chapters/bukhari"), "صحيح البخاري", 1),
     ("SAHIH_MUSLIM", Path("data/raw/chapters/muslim"), "صحيح مسلم", 2),
