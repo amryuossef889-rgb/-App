@@ -1,5 +1,6 @@
 package com.example.ui.components
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Bookmark
 import androidx.compose.material.icons.filled.Home
@@ -19,6 +20,7 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
@@ -38,53 +40,23 @@ fun AppBottomBar(
     modifier: Modifier = Modifier
 ) {
     val items = listOf(
-        BottomNavItem(
-            title = "الرئيسية",
-            route = Screen.Home.route,
-            selectedIcon = Icons.Filled.Home,
-            unselectedIcon = Icons.Outlined.Home
-        ),
-        BottomNavItem(
-            title = "السنن",
-            route = Screen.SunnahList.route,
-            selectedIcon = Icons.Filled.Bookmark,
-            unselectedIcon = Icons.Outlined.BookmarkBorder
-        ),
-        BottomNavItem(
-            title = "البحث",
-            route = Screen.Search.route,
-            selectedIcon = Icons.Filled.Search,
-            unselectedIcon = Icons.Outlined.Search
-        ),
-        BottomNavItem(
-            title = "المكتبة",
-            route = Screen.Library.route,
-            selectedIcon = Icons.Filled.MenuBook,
-            unselectedIcon = Icons.Outlined.MenuBook
-        ),
-        BottomNavItem(
-            title = "الإعدادات",
-            route = Screen.Settings.route,
-            selectedIcon = Icons.Filled.Settings,
-            unselectedIcon = Icons.Outlined.Settings
-        )
+        BottomNavItem("الرئيسية", Screen.Home.route, Icons.Filled.Home, Icons.Outlined.Home),
+        BottomNavItem("السنن", Screen.SunnahList.route, Icons.Filled.Bookmark, Icons.Outlined.BookmarkBorder),
+        BottomNavItem("البحث", Screen.Search.route, Icons.Filled.Search, Icons.Outlined.Search),
+        BottomNavItem("المكتبة", Screen.Library.route, Icons.Filled.MenuBook, Icons.Outlined.MenuBook),
+        BottomNavItem("الإعدادات", Screen.Settings.route, Icons.Filled.Settings, Icons.Outlined.Settings)
     )
 
     NavigationBar(
         modifier = modifier,
-        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-        tonalElevation = 6.dp
+        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.76f),
+        tonalElevation = 0.dp
     ) {
         items.forEach { item ->
             val isSelected = currentRoute == item.route
-
             NavigationBarItem(
                 selected = isSelected,
-                onClick = {
-                    if (currentRoute != item.route) {
-                        onNavigate(item.route)
-                    }
-                },
+                onClick = { if (currentRoute != item.route) onNavigate(item.route) },
                 icon = {
                     Icon(
                         imageVector = if (isSelected) item.selectedIcon else item.unselectedIcon,
