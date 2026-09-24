@@ -1,6 +1,9 @@
 package com.example.ui.screens.settings
 
 import android.content.Context
+import android.provider.Settings
+import android.os.Build
+import androidx.core.content.ContextCompat
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -72,16 +75,25 @@ class SettingsViewModel(
                 val userProgress = db.userProgressDao().getUserProgressDirect()
                 val currentSunnahId = userProgress?.currentSunnahId ?: 1
                 val currentSunnah = db.sunnahDao().getSunnahWithHadithDirect(currentSunnahId)
-                NotificationHelper.showPersistentSunnahNotification(
-                    context,
-                    currentSunnahId,
-                    currentSunnah?.sunnah?.title
-                )
+                NotificationHelper.showPersistentSunnahNotification(context, currentSunnahId, currentSunnah?.sunnah?.title)
                 NotificationHelper.schedulePersistentSunnahRefresh(context)
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(context)) {
+                    com.example.notifications.SunnahOverlayService.start(context)
+                }
             } else {
                 NotificationHelper.cancelPersistentSunnahRefresh(context)
                 NotificationHelper.cancelPersistentSunnahNotification(context)
+                com.example.notifications.SunnahOverlayService.stop(context)
             }
+        }
+    }
+
+    fun isOverlayPermissionGranted(): Boolean =
+        Build.VERSION.SDK_INT < Build.VERSION_CODES.M || Settings.canDrawOverlays(context)
+
+    fun syncPersistentOverlay() {
+        if (settings.value.persistentSunnahEnabled && isOverlayPermissionGranted()) {
+            com.example.notifications.SunnahOverlayService.start(context)
         }
     }
 
