@@ -67,14 +67,9 @@ def difficulty_for(text):
     return 3
 
 def is_source_hadith(text):
-    hay = normalize(text)
-    # The record must explicitly refer to the Prophet ﷺ in the Arabic source text.
-    # The app stores the source text itself and never invents a religious wording.
-    prophet_markers = [
-        "رسول الله", "النبي", "الرسول",
-        "صلى الله عليه وسلم", "عليه الصلاة والسلام",
-    ]
-    return len(hay) >= 20 and any(marker in hay for marker in prophet_markers)
+    # Every record inside these two pinned chapter directories is already a hadith
+    # from Sahih al-Bukhari or Sahih Muslim. We keep the source text unchanged.
+    return len(normalize(text)) >= 20
 
 def load_sources():
     records = []
