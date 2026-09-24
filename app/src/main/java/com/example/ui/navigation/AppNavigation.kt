@@ -150,6 +150,9 @@ fun AppNavigation(
                             },
                             onNavigateToSunnahList = {
                                 navController.navigate(Screen.SunnahList.route)
+                            },
+                            onNavigateToProgress = {
+                                navController.navigate(Screen.Progress.route)
                             }
                         )
                     }
