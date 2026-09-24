@@ -19,6 +19,21 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Expand verified Sunnah catalogue
+        run: |
+          python3 data/scripts/expand_sunnah_catalog.py
+          python3 - <<'PY'
+          import sqlite3
+          db = "app/src/main/assets/databases/sunnah.db"
+          con = sqlite3.connect(db)
+          count = con.execute("SELECT COUNT(*) FROM Sunnah").fetchone()[0]
+          hadiths = con.execute("SELECT COUNT(*) FROM Hadith").fetchone()[0]
+          if count < 1000:
+              raise SystemExit(f"Expected more than 1000 Sunnahs, found {count}")
+          print(f"Verified catalogue: {count} Sunnahs / {hadiths} Hadiths")
+          con.close()
+          PY
+
       - name: Validate bundled database exists
         run: |
           test -f app/src/main/assets/databases/sunnah.db
