@@ -40,7 +40,7 @@ class SearchViewModel(
     ) { query, collection, totalCount ->
         Triple(query, collection, totalCount)
     }.flatMapLatest { (query, collection, totalCount) ->
-        if (query.trim().length < 2) {
+        if (query.trim().isEmpty()) {
             flowOf(
                 SearchUiState(
                     query = query,
@@ -51,7 +51,7 @@ class SearchViewModel(
                 )
             )
         } else {
-            sunnahRepository.searchHadiths(query, collection).debounce(150).distinctUntilChanged().flatMapLatest { hadiths ->
+            sunnahRepository.searchHadiths(query, collection).distinctUntilChanged().flatMapLatest { hadiths ->
                 flowOf(
                     SearchUiState(
                         query = query,
