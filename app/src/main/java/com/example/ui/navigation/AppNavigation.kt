@@ -83,7 +83,7 @@ fun AppNavigation(
 
     val topBarTitle = when {
         currentRoute == Screen.Home.route -> "سُنّة النَّبِيِّ ﷺ"
-        currentRoute == Screen.SunnahList.route -> "قائمة السنن الـ 100"
+        currentRoute == Screen.SunnahList.route -> "قائمة السنن الموثقة"
         currentRoute == Screen.Search.route -> "البحث في الأحاديث"
         currentRoute == Screen.Library.route -> "مكتبة الكتب الفقهية"
         currentRoute == Screen.Settings.route -> "الإعدادات والمظهر"
