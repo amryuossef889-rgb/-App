@@ -8,7 +8,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
@@ -33,7 +32,15 @@ fun AppBackground(
     Box(
         modifier = modifier
             .fillMaxSize()
-            .background(MaterialTheme.colorScheme.background)
+            .background(
+                Brush.verticalGradient(
+                    colors = listOf(
+                        MaterialTheme.colorScheme.background,
+                        MaterialTheme.colorScheme.background.copy(alpha = 0.88f),
+                        MaterialTheme.colorScheme.background
+                    )
+                )
+            )
     ) {
         if (mode != BackgroundMode.DISABLED) {
             val bgModifier = Modifier.fillMaxSize()
@@ -48,40 +55,52 @@ fun AppBackground(
                             .build(),
                         contentDescription = null,
                         contentScale = contentScale,
-                        alpha = opacity,
+                        alpha = opacity * 0.72f,
                         modifier = bgModifier
                     )
                 } else {
-                    // Fallback to default if file missing
                     Image(
                         painter = painterResource(id = R.drawable.default_background),
                         contentDescription = null,
                         contentScale = contentScale,
-                        alpha = opacity,
+                        alpha = opacity * 0.72f,
                         modifier = bgModifier
                     )
                 }
             } else {
-                // Default background
                 Image(
                     painter = painterResource(id = R.drawable.default_background),
                     contentDescription = null,
                     contentScale = contentScale,
-                    alpha = opacity,
+                    alpha = opacity * 0.72f,
                     modifier = bgModifier
                 )
             }
 
-            // Subtle gradient overlay to enhance contrast
+            // طبقة ضوء ناعمة فوق الخلفية لتكوين إحساس زجاجي وهادئ
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(
                         Brush.verticalGradient(
                             colors = listOf(
-                                MaterialTheme.colorScheme.background.copy(alpha = 0.85f),
-                                MaterialTheme.colorScheme.background.copy(alpha = 0.70f),
-                                MaterialTheme.colorScheme.background.copy(alpha = 0.90f)
+                                MaterialTheme.colorScheme.background.copy(alpha = 0.62f),
+                                MaterialTheme.colorScheme.background.copy(alpha = 0.30f),
+                                MaterialTheme.colorScheme.background.copy(alpha = 0.78f)
+                            )
+                        )
+                    )
+            )
+
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                                MaterialTheme.colorScheme.tertiary.copy(alpha = 0.035f),
+                                MaterialTheme.colorScheme.background.copy(alpha = 0f)
                             )
                         )
                     )
