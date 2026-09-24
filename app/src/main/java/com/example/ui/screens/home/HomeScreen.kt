@@ -65,6 +65,7 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onNavigateToSunnahDetail: (Int) -> Unit,
     onNavigateToSunnahList: () -> Unit,
+    onNavigateToProgress: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -143,6 +144,32 @@ fun HomeScreen(
                 completedCount = uiState.completedSunnahIds.size,
                 totalCount = uiState.totalSunnahsCount
             )
+        }
+
+        // Progress and achievements shortcut
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigateToProgress() },
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f)
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("الإحصائيات والإنجازات", fontWeight = FontWeight.Bold)
+                        Text("تابع تقدّمك وسلسلتك وإنجازاتك", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Text("عرض", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                }
+            }
         }
 
         // Today's Sunnah Featured Card (Clean Minimalism Aesthetic)
