@@ -14,7 +14,8 @@ import java.util.Calendar
 
 object NotificationHelper {
     const val CHANNEL_ID = "sunnah_daily_channel"
-    private const val PERSISTENT_CHANNEL_ID = "sunnah_persistent_channel"
+    // New channel ID is intentional: Android does not allow changing an existing channel's importance.
+    private const val PERSISTENT_CHANNEL_ID = "sunnah_persistent_heads_up_v2"
     private const val CHANNEL_NAME = "سُنّة اليوم"
     private const val PERSISTENT_CHANNEL_NAME = "سُنّة اليوم الدائمة"
     private const val NOTIFICATION_ID = 1001
@@ -26,6 +27,8 @@ object NotificationHelper {
 
     fun createNotificationChannel(context: Context) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
+
             val channel = NotificationChannel(
                 CHANNEL_ID,
                 CHANNEL_NAME,
@@ -35,14 +38,16 @@ object NotificationHelper {
                 enableLights(true)
                 enableVibration(true)
             }
-            val manager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
             manager.createNotificationChannel(channel)
+
             val persistentChannel = NotificationChannel(
                 PERSISTENT_CHANNEL_ID,
                 PERSISTENT_CHANNEL_NAME,
-                NotificationManager.IMPORTANCE_LOW
+                NotificationManager.IMPORTANCE_HIGH
             ).apply {
-                description = "عرض سُنّة اليوم بشكل دائم في شريط الإشعارات"
+                description = "سُنّة اليوم في شريط الإشعارات مع تنبيه منبثق عند التفعيل والتحديث"
+                enableLights(true)
+                enableVibration(true)
                 setShowBadge(false)
             }
             manager.createNotificationChannel(persistentChannel)
@@ -110,9 +115,11 @@ object NotificationHelper {
             .setContentTitle("🌿 سُنّة اليوم")
             .setContentText(message)
             .setStyle(NotificationCompat.BigTextStyle().bigText(message))
-            .setPriority(NotificationCompat.PRIORITY_LOW)
+            .setPriority(NotificationCompat.PRIORITY_HIGH)
+            .setDefaults(NotificationCompat.DEFAULT_ALL)
             .setOngoing(true)
             .setAutoCancel(false)
+            .setOnlyAlertOnce(false)
             .setContentIntent(pendingIntent)
             .setCategory(NotificationCompat.CATEGORY_REMINDER)
             .build()
@@ -195,7 +202,6 @@ object NotificationHelper {
             set(Calendar.SECOND, 0)
             set(Calendar.MILLISECOND, 0)
 
-            // If time has passed today, schedule for tomorrow
             if (before(Calendar.getInstance())) {
                 add(Calendar.DAY_OF_YEAR, 1)
             }
@@ -209,19 +215,10 @@ object NotificationHelper {
                     pendingIntent
                 )
             } else {
-                alarmManager.setExact(
-                    AlarmManager.RTC_WAKEUP,
-                    calendar.timeInMillis,
-                    pendingIntent
-                )
+                alarmManager.setExact(calendar.timeInMillis, pendingIntent)
             }
         } catch (e: SecurityException) {
-            // Fallback for inexact if exact alarm permission not granted
-            alarmManager.set(
-                AlarmManager.RTC_WAKEUP,
-                calendar.timeInMillis,
-                pendingIntent
-            )
+            alarmManager.set(AlarmManager.RTC_WAKEUP, calendar.timeInMillis, pendingIntent)
         }
     }
 
