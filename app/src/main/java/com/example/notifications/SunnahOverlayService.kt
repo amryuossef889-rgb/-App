@@ -6,6 +6,7 @@ import android.content.Context
 import android.content.Intent
 import android.graphics.Color
 import android.graphics.PixelFormat
+import android.graphics.drawable.GradientDrawable
 import android.os.Build
 import android.provider.Settings
 import android.view.Gravity
@@ -15,12 +16,10 @@ import androidx.core.app.NotificationCompat
 import androidx.core.content.ContextCompat
 import com.example.R
 import com.example.data.database.AppDatabase
-import com.example.data.repository.SettingsRepository
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 
 class SunnahOverlayService : Service() {
@@ -50,7 +49,9 @@ class SunnahOverlayService : Service() {
             val progress = db.userProgressDao().getUserProgressDirect()
             val id = progress?.currentSunnahId ?: 1
             val sunnah = db.sunnahDao().getSunnahWithHadithDirect(id)
-            val title = sunnah?.sunnah?.title?.takeIf { it.isNotBlank() } ?: "افتح التطبيق لمعرفة سُنّة اليوم"
+            val title = sunnah?.sunnah?.title?.takeIf { it.isNotBlank() }
+                ?: "افتح التطبيق لمعرفة سُنّة اليوم"
+
             launch(Dispatchers.Main) { renderOverlay(title) }
         }
     }
@@ -63,10 +64,22 @@ class SunnahOverlayService : Service() {
             val view = TextView(this).apply {
                 setTextColor(Color.WHITE)
                 setTextSize(15f)
-                setPadding(28, 18, 28, 18)
-                setBackgroundColor(Color.rgb(30, 30, 30))
+                setPadding(26, 16, 26, 16)
+                background = GradientDrawable(
+                    GradientDrawable.Orientation.TL_BR,
+                    intArrayOf(
+                        Color.argb(238, 7, 94, 75),
+                        Color.argb(226, 11, 143, 112),
+                        Color.argb(218, 197, 107, 130)
+                    )
+                ).apply {
+                    cornerRadius = 42f
+                    setStroke(2, Color.argb(90, 255, 255, 255))
+                }
                 gravity = Gravity.CENTER_VERTICAL
-                elevation = 12f
+                elevation = 18f
+                contentDescription = "سُنّة اليوم"
+
                 setOnClickListener {
                     val open = Intent(this@SunnahOverlayService, com.example.MainActivity::class.java).apply {
                         flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TOP
@@ -94,27 +107,31 @@ class SunnahOverlayService : Service() {
             ).apply {
                 gravity = Gravity.TOP or Gravity.CENTER_HORIZONTAL
                 y = 18
+                horizontalMargin = 0.035f
             }
 
             try {
                 wm.addView(view, params)
                 overlayView = view
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 stopSelf()
                 return
             }
         }
 
-        overlayView?.text = "🌿 سُنّة اليوم  •  $title"
+        overlayView?.text = "🌿  سُنّة اليوم  •  $title"
     }
 
     private fun buildForegroundNotification(): Notification {
         NotificationHelper.createNotificationChannel(this)
         val intent = Intent(this, com.example.MainActivity::class.java)
         val pending = android.app.PendingIntent.getActivity(
-            this, 3001, intent,
+            this,
+            3001,
+            intent,
             android.app.PendingIntent.FLAG_UPDATE_CURRENT or android.app.PendingIntent.FLAG_IMMUTABLE
         )
+
         return NotificationCompat.Builder(this, "sunnah_persistent_heads_up_v2")
             .setSmallIcon(R.mipmap.ic_launcher)
             .setContentTitle("سُنّة اليوم")
@@ -127,7 +144,10 @@ class SunnahOverlayService : Service() {
 
     override fun onDestroy() {
         overlayView?.let {
-            try { windowManager?.removeView(it) } catch (_: Exception) {}
+            try {
+                windowManager?.removeView(it)
+            } catch (_: Exception) {
+            }
         }
         overlayView = null
         serviceScope.cancel()
