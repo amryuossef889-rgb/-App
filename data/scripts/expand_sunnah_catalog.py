@@ -74,7 +74,7 @@ def is_source_hadith(text):
         "رسول الله", "النبي", "الرسول",
         "صلى الله عليه وسلم", "عليه الصلاة والسلام",
     ]
-    return len(hay) >= 40 and any(marker in hay for marker in prophet_markers)
+    return len(hay) >= 20 and any(marker in hay for marker in prophet_markers)
 
 def load_sources():
     records = []
