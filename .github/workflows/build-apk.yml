@@ -19,6 +19,19 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Download pinned Bukhari and Muslim chapter data
+        run: |
+          set -e
+          rm -rf data/raw/chapters
+          mkdir -p data/raw/chapters/bukhari data/raw/chapters/muslim
+          for i in $(seq 1 97); do
+            curl -fsSL --retry 3 "https://raw.githubusercontent.com/AhmedBaset/hadith-json/v1.2.0/db/by_chapter/the_9_books/bukhari/$i.json" -o "data/raw/chapters/bukhari/$i.json"
+          done
+          for i in $(seq 1 56); do
+            curl -fsSL --retry 3 "https://raw.githubusercontent.com/AhmedBaset/hadith-json/v1.2.0/db/by_chapter/the_9_books/muslim/$i.json" -o "data/raw/chapters/muslim/$i.json"
+          done
+          echo "Pinned chapter sources downloaded."
+
       - name: Expand verified Sunnah catalogue
         run: |
           python3 data/scripts/expand_sunnah_catalog.py
