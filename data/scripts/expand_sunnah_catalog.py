@@ -77,20 +77,35 @@ def estimated_minutes(difficulty: int) -> int:
 def load_candidates():
     result = []
     seen = set()
+    hadith_pattern = re.compile(
+        r'\{\s*"id"\s*:\s*(\d+)\s*,\s*"chapterId"\s*:\s*(\d+)\s*,\s*'
+        r'"bookId"\s*:\s*(\d+)\s*,\s*"arabic"\s*:\s*"(.*?)"\s*,\s*"english"\s*:',
+        re.S
+    )
+    chapter_pattern = re.compile(
+        r'\{\s*"id"\s*:\s*(\d+)\s*,\s*"arabic"\s*:\s*"(.*?)"\s*\}',
+        re.S
+    )
+
     for collection, path, arabic_name in SOURCE_FILES:
         raw = path.read_bytes().decode("utf-8", errors="ignore")
-        repaired = sanitize_json(raw)
-        data = json.loads(repaired, strict=False)
-        chapters = {c.get("id"): c.get("arabic", "") for c in data.get("chapters", [])}
-        for h in data.get("hadiths", []):
-            arabic = (h.get("arabic") or "").strip()
+        head, _, tail = raw.partition('"hadiths"')
+        chapters = {}
+        for m in chapter_pattern.finditer(head):
+            chapters[int(m.group(1))] = m.group(2).replace("\\n", " ").strip()
+
+        for h in hadith_pattern.finditer(tail):
+            raw_id = int(h.group(1))
+            chapter_id = int(h.group(2))
+            book_id = int(h.group(3))
+            arabic = h.group(4).strip()
             if len(arabic) < 40:
                 continue
+
             key = normalize(arabic)
             if not key or key in seen:
                 continue
-            # Prefer narrations that contain a direct prophetic action, command,
-            # prohibition, description, or practical situation.
+
             action_markers = [
                 "قال رسول الله", "قال النبي", "كان رسول الله", "كان النبي",
                 "رأيت رسول الله", "رأيت النبي", "نهى رسول الله", "أمر رسول الله",
@@ -98,18 +113,18 @@ def load_candidates():
             ]
             if not any(marker in arabic for marker in action_markers):
                 continue
+
             seen.add(key)
-            chapter = chapters.get(h.get("chapterId"), arabic_name)
-            ref_no = h.get("idInBook", h.get("id"))
-            source = f"{arabic_name} — حديث رقم {ref_no} — {clean_chapter(chapter)}"
+            chapter = clean_chapter(chapters.get(chapter_id, "هدي نبوي موثق"))
+            source = f"{arabic_name} — حديث رقم {raw_id} — {chapter}"
             result.append({
                 "collection": collection,
                 "book": arabic_name,
-                "chapter": clean_chapter(chapter),
-                "hadith_number": int(ref_no) if str(ref_no).isdigit() else h.get("id", 0),
-                "raw_id": int(h.get("id", 0)),
-                "chapter_id": int(h.get("chapterId", 0)),
-                "book_id": int(h.get("bookId", 0)),
+                "chapter": chapter,
+                "hadith_number": raw_id,
+                "raw_id": raw_id,
+                "chapter_id": chapter_id,
+                "book_id": book_id,
                 "arabic": arabic,
                 "source": source,
             })
