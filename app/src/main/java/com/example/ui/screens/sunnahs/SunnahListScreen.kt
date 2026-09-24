@@ -58,7 +58,7 @@ fun SunnahListScreen(
     val uiState by viewModel.uiState.collectAsState()
 
     val difficultyTabs = listOf(
-        0 to "الكل (100)",
+        0 to "الكل",
         1 to "مستوى 1: سهل جداً",
         2 to "مستوى 2: سهل",
         3 to "مستوى 3: متوسط",
@@ -78,7 +78,7 @@ fun SunnahListScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp),
-            placeholder = { Text("ابحث في قائمة السنن الـ 100...") },
+            placeholder = { Text("ابحث في قائمة السنن...") },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
