@@ -81,14 +81,14 @@ class SunnahRepository(private val db: AppDatabase) {
 
         val newLongestStreak = maxOf(currentProgress.longestStreak, newStreak)
 
-        // Find next uncompleted Sunnah ID in order 1..100
+        // Find the next uncompleted Sunnah dynamically so the catalogue can grow beyond 100 entries.
+        val maxSunnahId = userProgressDao.getUserProgressDirect()?.let { sunnahDao.getMaxSunnahId() ?: 1 } ?: (sunnahDao.getMaxSunnahId() ?: 1)
         var nextId = sunnahId + 1
-        while (nextId <= 100 && completedSet.contains(nextId)) {
+        while (nextId <= maxSunnahId && completedSet.contains(nextId)) {
             nextId++
         }
-        if (nextId > 100) {
-            // Find first uncompleted from 1
-            nextId = (1..100).firstOrNull { !completedSet.contains(it) } ?: 100
+        if (nextId > maxSunnahId) {
+            nextId = (1..maxSunnahId).firstOrNull { !completedSet.contains(it) } ?: maxSunnahId
         }
 
         val jsonArray = JSONArray()
