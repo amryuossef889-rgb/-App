@@ -107,7 +107,15 @@ class SunnahRepository(private val db: AppDatabase) {
     }
 
     suspend fun toggleSunnahCompletion(sunnahId: Int): Boolean {
-        val currentProgress = userProgressDao.getUserProgressDirect() ?: return false
+        val currentProgress = userProgressDao.getUserProgressDirect() ?: UserProgress(
+            id = 1,
+            currentSunnahId = 1,
+            completedSunnahs = "[]",
+            currentStreak = 0,
+            longestStreak = 0,
+            lastCompletedDate = null,
+            startedDate = getTodayDateString()
+        )
         val completedSet = parseCompletedSunnahIds(currentProgress.completedSunnahs).toMutableSet()
         val isNowCompleted = if (completedSet.contains(sunnahId)) {
             completedSet.remove(sunnahId)
