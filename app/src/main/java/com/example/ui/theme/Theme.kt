@@ -25,9 +25,9 @@ private val LightColorScheme = lightColorScheme(
     onPrimaryContainer = MinimalEmeraldPrimary,
     secondary = MinimalEmeraldAccent,
     onSecondary = Color.White,
-    secondaryContainer = MinimalEmeraldLight,
-    onSecondaryContainer = MinimalEmeraldPrimary,
-    tertiary = StreakFireOrange,
+    secondaryContainer = Color(0xDDF4EDE3),
+    onSecondaryContainer = MinimalTextPrimaryLight,
+    tertiary = MercyRose,
     onTertiary = Color.White,
     background = MinimalBackgroundLight,
     onBackground = MinimalTextPrimaryLight,
@@ -47,8 +47,8 @@ private val DarkColorScheme = darkColorScheme(
     onSecondary = MinimalDarkOnPrimary,
     secondaryContainer = MinimalDarkSurfaceContainer,
     onSecondaryContainer = MinimalDarkSecondary,
-    tertiary = Color(0xFFFDBA74),
-    onTertiary = Color(0xFF431407),
+    tertiary = Color(0xFFE4A0B2),
+    onTertiary = Color(0xFF401824),
     background = MinimalDarkBackground,
     onBackground = MinimalDarkTextPrimary,
     surface = MinimalDarkSurface,
@@ -71,8 +71,8 @@ fun SunnahTheme(
     }
 
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
-
     val view = LocalView.current
+
     if (!view.isInEditMode) {
         SideEffect {
             val window = (view.context as Activity).window
