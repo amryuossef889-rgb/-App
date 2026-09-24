@@ -10,7 +10,6 @@ organization aid only; it is not a religious ruling or a grading of the hadith.
 
 import json
 import re
-from generate_complete_db import load_json_dataset
 import sqlite3
 from pathlib import Path
 
@@ -78,7 +77,8 @@ def load_candidates():
     result = []
     seen = set()
     for collection, path, arabic_name in SOURCE_FILES:
-        data = load_json_dataset(str(path))
+        raw = path.read_bytes().decode("utf-8", errors="ignore")
+        data = json.loads(raw, strict=False)
         chapters = {c.get("id"): c.get("arabic", "") for c in data.get("chapters", [])}
         for h in data.get("hadiths", []):
             arabic = (h.get("arabic") or "").strip()
