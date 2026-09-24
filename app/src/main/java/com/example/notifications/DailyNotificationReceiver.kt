@@ -30,6 +30,7 @@ class DailyNotificationReceiver : BroadcastReceiver() {
                             sunnahTitle = currentSunnah?.sunnah?.title
                         )
                         NotificationHelper.schedulePersistentSunnahRefresh(context)
+                        com.example.notifications.SunnahOverlayService.update(context)
                     }
                 } else {
                     NotificationHelper.showDailySunnahNotification(
