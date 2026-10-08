@@ -243,13 +243,19 @@ fun AdminLibraryScreen(
                                 val filename = "pdf_${UUID.randomUUID()}.pdf"
                                 val destFile = File(pdfDir, filename)
 
-                                context.contentResolver.openInputStream(selectedUri!!)?.use { input ->
+                                val inputStream = context.contentResolver.openInputStream(selectedUri!!)
+                                    ?: throw IllegalStateException("تعذر قراءة ملف PDF المحدد")
+                                inputStream.use { input ->
                                     FileOutputStream(destFile).use { output ->
                                         input.copyTo(output)
                                     }
                                 }
 
                                 val fileSize = destFile.length()
+                                if (fileSize < 5L) {
+                                    destFile.delete()
+                                    throw IllegalArgumentException("ملف PDF فارغ أو غير صالح")
+                                }
                                 viewModel.addBook(
                                     title = bookTitleInput.trim(),
                                     description = bookDescInput.trim(),
