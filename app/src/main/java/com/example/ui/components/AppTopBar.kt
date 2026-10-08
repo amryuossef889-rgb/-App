@@ -15,7 +15,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 
@@ -30,18 +29,17 @@ fun AppTopBar(
 ) {
     Surface(
         modifier = modifier,
-        shape = RoundedCornerShape(bottomStart = 26.dp, bottomEnd = 26.dp),
-        color = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f),
-        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.42f)),
-        shadowElevation = 8.dp
+        shape = RoundedCornerShape(bottomStart = 24.dp, bottomEnd = 24.dp),
+        color = MaterialTheme.colorScheme.surface,
+        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.24f)),
+        shadowElevation = 2.dp
     ) {
         CenterAlignedTopAppBar(
             title = {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleLarge.copy(
-                        fontFamily = FontFamily.SansSerif,
-                        fontWeight = FontWeight.Bold
+                        fontWeight = FontWeight.ExtraBold
                     )
                 )
             },
