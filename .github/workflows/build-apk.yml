@@ -157,6 +157,9 @@ jobs:
           con.close()
           PY
 
+      - name: Run unit tests
+        run: gradle --no-daemon testDebugUnitTest
+
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
 
