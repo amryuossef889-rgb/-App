@@ -2,54 +2,52 @@ package com.example.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-// هوية بصرية هادئة: أخضر زمردي + عاجي دافئ + لمسات ذهبية ورحمة وردية
-val MinimalEmerald80 = Color(0xFFA7F3D0)
-val MinimalEmerald60 = Color(0xFF34D399)
-val MinimalEmeraldPrimary = Color(0xFF075E4B)
-val MinimalEmeraldDarker = Color(0xFF033B30)
-val MinimalEmeraldAccent = Color(0xFF0B8F70)
-val MinimalEmeraldLight = Color(0xFFE8F8F1)
-val MinimalEmeraldBorder = Color(0x66B7E5D2)
+// Obsidian Glass — a new cool, modern identity with cyan glass highlights.
+val MinimalEmerald80 = Color(0xFFB7F7F0)
+val MinimalEmerald60 = Color(0xFF48E0D0)
+val MinimalEmeraldPrimary = Color(0xFF145B61)
+val MinimalEmeraldDarker = Color(0xFF0A3038)
+val MinimalEmeraldAccent = Color(0xFF20BFC1)
+val MinimalEmeraldLight = Color(0xFFDDF8F5)
+val MinimalEmeraldBorder = Color(0x6636CFCB)
 
-// لمسة ذهبية مستوحاة من الزخارف الإسلامية
-val StreakOrangeBg = Color(0xFFFDF0DC)
-val StreakOrangeText = Color(0xFF8A5A16)
-val StreakFireOrange = Color(0xFFD68B2C)
+// Achievement accent; kept warm for clear status differentiation.
+val StreakOrangeBg = Color(0xFFFFF0D7)
+val StreakOrangeText = Color(0xFF80511B)
+val StreakFireOrange = Color(0xFFE29A43)
+val MercyRose = Color(0xFFB85C7A)
+val MercyRoseLight = Color(0xFFF9E8EF)
 
-// لمسة وردية ناعمة تعبّر عن الرحمة والمودة
-val MercyRose = Color(0xFFC56B82)
-val MercyRoseLight = Color(0xFFF9E8ED)
+// Light mode: cool porcelain, ink, and subtle cyan glass.
+val MinimalBackgroundLight = Color(0xFFF2F5F8)
+val MinimalSurfaceLight = Color(0xEFFFFFFF)
+val MinimalSurfaceContainerLight = Color(0xDDE5EDF2)
+val MinimalBorderLight = Color(0xBFFFFFFF)
+val MinimalBorderLightMedium = Color(0x557B9BA7)
+val MinimalTextPrimaryLight = Color(0xFF17252F)
+val MinimalTextSecondaryLight = Color(0xFF526571)
+val MinimalTextMutedLight = Color(0xFF778A94)
 
-// خلفيات دافئة وشفافة
-val MinimalBackgroundLight = Color(0xFFF7F4EE)
-val MinimalSurfaceLight = Color(0xDDFEFCF8)
-val MinimalSurfaceContainerLight = Color(0xBFEFF7F2)
-val MinimalBorderLight = Color(0x55FFFFFF)
-val MinimalBorderLightMedium = Color(0x6690B7A9)
-val MinimalTextPrimaryLight = Color(0xFF17322A)
-val MinimalTextSecondaryLight = Color(0xFF5F716B)
-val MinimalTextMutedLight = Color(0xFF81918B)
+// Dark mode: obsidian navy with restrained luminous turquoise.
+val MinimalDarkBackground = Color(0xFF080D14)
+val MinimalDarkSurface = Color(0xD916202C)
+val MinimalDarkSurfaceContainer = Color(0xC020303E)
+val MinimalDarkBorder = Color(0x6646D9D0)
+val MinimalDarkPrimary = Color(0xFF65E8DF)
+val MinimalDarkSecondary = Color(0xFFB2F5F0)
+val MinimalDarkOnPrimary = Color(0xFF06252A)
+val MinimalDarkTextPrimary = Color(0xFFF0F6FA)
+val MinimalDarkTextSecondary = Color(0xFFB1C1CB)
+val MinimalDarkTextMuted = Color(0xFF81939F)
 
-// الوضع الداكن مع زجاج داكن
-val MinimalDarkBackground = Color(0xFF071511)
-val MinimalDarkSurface = Color(0xCC10251E)
-val MinimalDarkSurfaceContainer = Color(0xAA17362B)
-val MinimalDarkBorder = Color(0x556EE7B7)
-val MinimalDarkPrimary = Color(0xFF78E2BF)
-val MinimalDarkSecondary = Color(0xFFB8F1DD)
-val MinimalDarkOnPrimary = Color(0xFF05362B)
-val MinimalDarkTextPrimary = Color(0xFFF3F8F5)
-val MinimalDarkTextSecondary = Color(0xFFA7BBB4)
-val MinimalDarkTextMuted = Color(0xFF71857E)
-
-// مستويات الصعوبة
-val DifficultyLevel1 = Color(0xFF0B8F70)
-val DifficultyLevel2 = Color(0xFF1976A8)
+// Difficulty categories retain distinct colors for quick scanning.
+val DifficultyLevel1 = Color(0xFF169D92)
+val DifficultyLevel2 = Color(0xFF348AC4)
 val DifficultyLevel3 = Color(0xFFC27A16)
-val DifficultyLevel4 = Color(0xFF7653B8)
-val DifficultyLevel5 = Color(0xFFB94D67)
+val DifficultyLevel4 = Color(0xFF8666D4)
+val DifficultyLevel5 = Color(0xFFC45B78)
 
-// زخارف وهوية إسلامية
-val MihrabGold = Color(0xFFD2A44A)
-val CardBorderGreen = Color(0x550B8F70)
-val CardBorderDark = Color(0x5578E2BF)
+// Decorative accents used by existing components.
+val MihrabGold = Color(0xFFD6B56D)
+val CardBorderGreen = Color(0x5534BFC0)
+val CardBorderDark = Color(0x6671E8DF)
