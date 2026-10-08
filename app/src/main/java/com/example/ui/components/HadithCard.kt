@@ -158,7 +158,7 @@ fun HadithCard(
                     Text(
                         text = "« ${hadith.arabicText} »",
                         style = MaterialTheme.typography.bodyLarge.copy(
-                            fontFamily = FontFamily.Serif,
+                            fontFamily = FontFamily.SansSerif,
                             fontSize = hadithTextSize,
                             lineHeight = hadithLineHeight,
                             fontWeight = FontWeight.Medium,
