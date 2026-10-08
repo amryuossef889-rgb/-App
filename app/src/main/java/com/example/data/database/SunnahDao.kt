@@ -38,6 +38,9 @@ interface SunnahDao {
     @Query("SELECT MAX(id) FROM Sunnah")
     suspend fun getMaxSunnahId(): Int?
 
+    @Query("SELECT id FROM Sunnah ORDER BY orderIndex ASC")
+    suspend fun getAllSunnahIdsInOrder(): List<Int>
+
     @Query("SELECT DISTINCT category FROM Sunnah ORDER BY category ASC")
     fun getAllCategories(): Flow<List<String>>
 }
