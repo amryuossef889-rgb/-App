@@ -189,7 +189,7 @@ def update_hadith(cur, hadith_id, source):
         """,
         (
             source["collection"], source["book"], source["chapter"], source["hadith_number"],
-            "راوي الحديث", source["arabic"], source["source"], "صحيح", 0,
+            "غير محدد في بيانات المصدر", source["arabic"], source["source"], "صحيح", 0,
             source["raw_id"], source["chapter_id"], source["book_id"], hadith_id,
         ),
     )
@@ -326,7 +326,7 @@ def main():
         sid = max_sid + offset
         update_values = (
             hid, source["collection"], source["book"], source["chapter"],
-            source["hadith_number"], "راوي الحديث", source["arabic"],
+            source["hadith_number"], "غير محدد في بيانات المصدر", source["arabic"],
             source["source"], "صحيح", 0, None,
             source["raw_id"], source["chapter_id"], source["book_id"],
         )
