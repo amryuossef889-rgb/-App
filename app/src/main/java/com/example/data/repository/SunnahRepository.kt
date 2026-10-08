@@ -118,9 +118,9 @@ class SunnahRepository(private val db: AppDatabase) {
             completedSet.remove(sunnahId)
             val jsonArray = JSONArray()
             completedSet.sorted().forEach { jsonArray.put(it) }
-            val firstUncompletedId = sunnahDao.getAllSunnahIdsInOrder()
-                .firstOrNull { it !in completedSet }
-                ?: sunnahDao.getAllSunnahIdsInOrder().lastOrNull()
+            val orderedIds = sunnahDao.getAllSunnahIdsInOrder()
+            val firstUncompletedId = orderedIds.firstOrNull { it !in completedSet }
+                ?: orderedIds.lastOrNull()
                 ?: currentProgress.currentSunnahId
             userProgressDao.insertOrUpdate(
                 currentProgress.copy(
