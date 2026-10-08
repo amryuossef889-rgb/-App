@@ -252,9 +252,14 @@ fun AdminLibraryScreen(
                                 }
 
                                 val fileSize = destFile.length()
-                                if (fileSize < 5L) {
+                                val pdfHeader = destFile.inputStream().use { input ->
+                                    val header = ByteArray(5)
+                                    val read = input.read(header)
+                                    if (read == header.size) String(header, Charsets.US_ASCII) else ""
+                                }
+                                if (fileSize < 5L || pdfHeader != "%PDF-") {
                                     destFile.delete()
-                                    throw IllegalArgumentException("ملف PDF فارغ أو غير صالح")
+                                    throw IllegalArgumentException("الملف المحدد ليس ملف PDF صالحاً")
                                 }
                                 viewModel.addBook(
                                     title = bookTitleInput.trim(),
