@@ -120,7 +120,7 @@ fun SunnahDetailScreen(
                     Text(
                         text = sunnah.title,
                         style = MaterialTheme.typography.headlineMedium.copy(
-                            fontFamily = FontFamily.Serif,
+                            fontFamily = FontFamily.SansSerif,
                             fontWeight = FontWeight.Bold,
                             color = MaterialTheme.colorScheme.onSurface
                         )
