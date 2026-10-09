@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 import java.io.File
 
 @Composable
@@ -129,20 +130,33 @@ fun PdfReaderScreen(
         withContext(Dispatchers.IO) {
             try {
                 val page = renderer.openPage(currentPageIndex)
-                val width = page.width * 2
-                val height = page.height * 2
-                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                bitmap.eraseColor(android.graphics.Color.WHITE)
-                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-                page.close()
-
-                currentBitmap = bitmap
-                scale = 1f
-                offsetX = 0f
-                offsetY = 0f
+                var bitmap: Bitmap? = null
+                try {
+                    // Cap the longest edge to avoid excessive allocations for unusually large PDFs.
+                    val renderScale = minOf(2f, 2400f / maxOf(page.width, page.height).toFloat())
+                    val width = (page.width * renderScale).roundToInt().coerceAtLeast(1)
+                    val height = (page.height * renderScale).roundToInt().coerceAtLeast(1)
+                    bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                    bitmap.eraseColor(android.graphics.Color.WHITE)
+                    page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                    currentBitmap = bitmap
+                    scale = 1f
+                    offsetX = 0f
+                    offsetY = 0f
+                } finally {
+                    page.close()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    // Recycle each rendered page bitmap when it is replaced or the screen leaves composition.
+    DisposableEffect(currentBitmap) {
+        val bitmapToDispose = currentBitmap
+        onDispose {
+            if (bitmapToDispose != null && !bitmapToDispose.isRecycled) bitmapToDispose.recycle()
         }
     }
 
