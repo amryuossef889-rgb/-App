@@ -1,7 +1,7 @@
 # Security and Reliability Audit — Sunnah Android App
 
 Audit target: `main` branch snapshot reviewed on 2026-10-09.
-Working branch: `audit/security-ui-refresh`.
+Working branch: `audit/security-ui-refresh` (proposed changes in PR #3).
 
 ## Confirmed issue fixed in this branch
 
@@ -14,7 +14,7 @@ Working branch: `audit/security-ui-refresh`.
 
 ## Remaining items requiring verification / remediation
 
-1. **CI supply-chain hardening remains open.** Actions are still referenced by major-version tags, and downloaded hadith source JSON does not yet have checksum verification. Pin actions to reviewed immutable SHAs and verify upstream source integrity.
+1. **CI supply-chain hardening partially remediated.** Workflow actions are pinned to immutable commit SHAs, and hadith source downloads now use the resolved immutable upstream commit instead of a movable release tag. A separate checksum manifest for every downloaded JSON file is still not maintained.
 2. **Migration coverage remains open.** Destructive fallback is removed, but no schema version bump or migration has been introduced. Add and test a Room migration whenever entities/schema change; a schema mismatch now fails safely instead of deleting user data.
 3. **Release validation is in progress.** R8/resource shrinking is enabled; verify release build and run smoke tests. A production-signed APK requires a private keystore and passwords supplied through GitHub Actions secrets or local environment variables.
 4. **Functional test coverage remains to be verified.** Test notification permission denial, exact-alarm permission denial, reboot rescheduling, overlay permission revocation, database initialization, migration behavior, and Arabic search on supported Android versions.
