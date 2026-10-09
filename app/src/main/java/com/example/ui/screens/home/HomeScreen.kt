@@ -181,76 +181,6 @@ fun HomeScreen(
             }
         }
 
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Card(
-                    modifier = Modifier.weight(1f).clickable { onNavigateToSunnahList() },
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
-                ) {
-                    Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                        Text("☼", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
-                        Spacer(Modifier.height(6.dp))
-                        Text("تصفّح السنن", fontWeight = FontWeight.Bold)
-                        Text("اكتشف المزيد", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-                Card(
-                    modifier = Modifier.weight(1f).clickable { onNavigateToFavorites() },
-                    shape = RoundedCornerShape(18.dp),
-                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
-                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
-                ) {
-                    Column(Modifier.fillMaxWidth().padding(16.dp)) {
-                        Text("☆", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
-                        Spacer(Modifier.height(6.dp))
-                        Text("المفضلة", fontWeight = FontWeight.Bold)
-                        Text("سننك المحفوظة", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-                    }
-                }
-            }
-        }
-
-        // Stats Grid: 2 Clean Minimalist Cards (Completed & Rate)
-        item {
-            StreakCard(
-                currentStreak = currentStreak,
-                longestStreak = uiState.userProgress?.longestStreak ?: 0,
-                completedCount = uiState.completedSunnahIds.size,
-                totalCount = uiState.totalSunnahsCount
-            )
-        }
-
-        // Progress and achievements shortcut
-        item {
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onNavigateToProgress() },
-                shape = RoundedCornerShape(22.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f)
-                ),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth().padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Column {
-                        Text("الإحصائيات والإنجازات", fontWeight = FontWeight.Bold)
-                        Text("تابع تقدّمك وسلسلتك وإنجازاتك", style = MaterialTheme.typography.bodySmall)
-                    }
-                    Text("عرض", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
-                }
-            }
-        }
-
         // Today's Sunnah Featured Card (Clean Minimalism Aesthetic)
         val todaySunnah = uiState.currentSunnahWithHadith
         if (todaySunnah != null) {
@@ -445,6 +375,66 @@ fun HomeScreen(
             }
         }
 
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Card(
+                    modifier = Modifier.weight(1f).clickable { onNavigateToSunnahList() },
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                        Text("☼", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
+                        Spacer(Modifier.height(6.dp))
+                        Text("تصفّح السنن", fontWeight = FontWeight.Bold)
+                        Text("اكتشف المزيد", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                Card(
+                    modifier = Modifier.weight(1f).clickable { onNavigateToFavorites() },
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                        Text("☆", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
+                        Spacer(Modifier.height(6.dp))
+                        Text("المفضلة", fontWeight = FontWeight.Bold)
+                        Text("سننك المحفوظة", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+            }
+        }
+
+        // Progress and achievements shortcut
+        item {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .clickable { onNavigateToProgress() },
+                shape = RoundedCornerShape(22.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.72f)
+                ),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text("الإحصائيات والإنجازات", fontWeight = FontWeight.Bold)
+                        Text("تابع تقدّمك وسلسلتك وإنجازاتك", style = MaterialTheme.typography.bodySmall)
+                    }
+                    Text("عرض", color = MaterialTheme.colorScheme.primary, fontWeight = FontWeight.Bold)
+                }
+            }
+        }
+
         // Next Sunnah Banner
         val upcomingFirst = uiState.upcomingSunnahs.firstOrNull()
         if (upcomingFirst != null) {
@@ -541,3 +531,16 @@ fun HomeScreen(
     }
 }
 
+
+        // Stats Grid: 2 Clean Minimalist Cards (Completed & Rate)
+        item {
+            StreakCard(
+                currentStreak = currentStreak,
+                longestStreak = uiState.userProgress?.longestStreak ?: 0,
+                completedCount = uiState.completedSunnahIds.size,
+                totalCount = uiState.totalSunnahsCount
+            )
+        }
+
+    }
+}
