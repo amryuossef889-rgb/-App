@@ -57,7 +57,7 @@ fun StreakCard(
                         )
                     )
                     Text(
-                        text = "\${completedCount}",
+                        text = "$safeCompleted",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary
@@ -86,7 +86,7 @@ fun StreakCard(
                         )
                     )
                     Text(
-                        text = "\${percent}%",
+                        text = "$percent%",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary
