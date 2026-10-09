@@ -21,7 +21,7 @@
         android:supportsRtl="true"
         android:enableOnBackInvokedCallback="true"
         android:theme="@style/Theme.MyApplication">
-        
+
         <activity
             android:name=".MainActivity"
             android:exported="true"
@@ -34,13 +34,23 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".notifications.SunnahOverlayService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="Display the daily Sunnah overlay explicitly enabled by the user" />
+        </service>
+
         <receiver
             android:name=".notifications.DailyNotificationReceiver"
             android:exported="false" />
 
         <receiver
             android:name=".notifications.BootReceiver"
-            android:exported="true">
+            android:exported="true"
+            android:permission="android.permission.RECEIVE_BOOT_COMPLETED">
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
                 <action android:name="android.intent.action.QUICKBOOT_POWERON" />
