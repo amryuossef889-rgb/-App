@@ -92,8 +92,14 @@ fun PdfReaderScreen(
     LaunchedEffect(filename) {
         withContext(Dispatchers.IO) {
             try {
-                val file = File(File(context.filesDir, "pdfs"), filename)
-                if (!file.exists()) {
+                val pdfDir = File(context.filesDir, "pdfs").canonicalFile
+                val file = File(pdfDir, filename).canonicalFile
+                if (file.parentFile != pdfDir || !filename.matches(Regex("pdf_[a-fA-F0-9-]+\\.pdf"))) {
+                    errorMessage = "اسم ملف غير صالح"
+                    isLoading = false
+                    return@withContext
+                }
+                if (!file.exists() || !file.isFile || !file.canRead()) {
                     errorMessage = "الملف غير موجود على الجهاز"
                     isLoading = false
                     return@withContext
