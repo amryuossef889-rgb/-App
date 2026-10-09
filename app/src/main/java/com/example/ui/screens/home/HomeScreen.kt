@@ -317,23 +317,32 @@ fun HomeScreen(
                             // Compact meaning preview; the complete narration opens on the detail screen.
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            Text(
-                                text = "خلاصة المعنى",
-                                style = MaterialTheme.typography.labelLarge.copy(
-                                    fontWeight = FontWeight.Bold,
-                                    color = MaterialTheme.colorScheme.primary
+                            if (todaySunnah.hadith != null) {
+                                Text(
+                                    text = "من الحديث الشريف",
+                                    style = MaterialTheme.typography.labelLarge.copy(
+                                        fontWeight = FontWeight.Bold,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
                                 )
-                            )
-                            Spacer(modifier = Modifier.height(4.dp))
-                            Text(
-                                text = todaySunnah.sunnah.description,
-                                maxLines = 2,
-                                overflow = TextOverflow.Ellipsis,
-                                style = MaterialTheme.typography.bodyMedium.copy(
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    lineHeight = 22.sp
+                                Spacer(modifier = Modifier.height(4.dp))
+                                val originalText = todaySunnah.hadith.arabicText.trim()
+                                val prophetSpeechStart = originalText.indexOf("قال رسول الله")
+                                val excerpt = if (prophetSpeechStart >= 0) {
+                                    originalText.substring(prophetSpeechStart)
+                                } else {
+                                    originalText
+                                }
+                                Text(
+                                    text = excerpt,
+                                    maxLines = 2,
+                                    overflow = TextOverflow.Ellipsis,
+                                    style = MaterialTheme.typography.bodyMedium.copy(
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        lineHeight = 22.sp
+                                    )
                                 )
-                            )
+                            }
 
                             if (todaySunnah.hadith != null) {
                                 Spacer(modifier = Modifier.height(12.dp))

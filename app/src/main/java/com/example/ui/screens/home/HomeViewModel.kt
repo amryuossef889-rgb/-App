@@ -34,8 +34,12 @@ class HomeViewModel(
         _userProgress,
         _allSunnahs
     ) { progress, sunnahs ->
-        val currentId = progress?.currentSunnahId ?: 1
         val allSunnahIds = sunnahs.mapTo(mutableSetOf()) { it.sunnah.id }
+        // Rotate the featured narration by local calendar day; don't pin it to progress.currentSunnahId.
+        val calendar = java.util.Calendar.getInstance()
+        val dayKey = calendar.get(java.util.Calendar.YEAR) * 366 + calendar.get(java.util.Calendar.DAY_OF_YEAR)
+        val currentId = if (sunnahs.isNotEmpty()) sunnahs[Math.floorMod(dayKey, sunnahs.size)].sunnah.id
+            else (progress?.currentSunnahId ?: 1)
         val completedSet = SunnahRepository.parseCompletedSunnahIds(progress?.completedSunnahs ?: "[]")
             .intersect(allSunnahIds)
         val currentSunnah = sunnahs.find { it.sunnah.id == currentId } ?: sunnahs.firstOrNull()
