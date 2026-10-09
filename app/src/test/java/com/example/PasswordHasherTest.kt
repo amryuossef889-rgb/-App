@@ -2,11 +2,14 @@ package com.example
 
 import android.content.Context
 import org.robolectric.RuntimeEnvironment
+import org.robolectric.RobolectricTestRunner
+import org.junit.runner.RunWith
 import com.example.ui.utils.PasswordHasher
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
+@RunWith(RobolectricTestRunner::class)
 class PasswordHasherTest {
     @Test
     fun firstUseCreatesPassphraseAndSubsequentUseVerifiesIt() {
