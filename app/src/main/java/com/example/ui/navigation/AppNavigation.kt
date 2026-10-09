@@ -240,7 +240,7 @@ fun AppNavigation(
                     // Admin Library
                     composable(Screen.AdminLibrary.route) {
                         val libraryViewModel: LibraryViewModel = viewModel(
-                            factory = LibraryViewModel.provideFactory(app.sunnahRepository)
+                            factory = LibraryViewModel.provideFactory(app.sunnahRepository, context)
                         )
                         AdminLibraryScreen(
                             viewModel = libraryViewModel,
