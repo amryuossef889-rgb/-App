@@ -172,10 +172,32 @@ jobs:
           path: app/build/outputs/apk/debug/*.apk
           if-no-files-found: error
 
+      - name: Configure release signing from repository secrets (optional)
+        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
+        env:
+          ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+        run: |
+          set -euo pipefail
+          test -n "$ANDROID_STORE_PASSWORD"
+          test -n "$ANDROID_KEY_PASSWORD"
+          test -n "$ANDROID_KEY_ALIAS"
+          printf '%s' "$ANDROID_KEYSTORE_BASE64" | base64 --decode > "$RUNNER_TEMP/release.keystore"
+          chmod 600 "$RUNNER_TEMP/release.keystore"
+          {
+            printf 'KEYSTORE_PATH=%s\n' "$RUNNER_TEMP/release.keystore"
+            printf 'STORE_PASSWORD=%s\n' "$ANDROID_STORE_PASSWORD"
+            printf 'KEY_PASSWORD=%s\n' "$ANDROID_KEY_PASSWORD"
+            printf 'KEY_ALIAS=%s\n' "$ANDROID_KEY_ALIAS"
+          } >> "$GITHUB_ENV"
+          echo "Release signing material loaded from protected repository secrets."
+
       - name: Build optimized release APK and App Bundle
         run: gradle --no-daemon assembleRelease bundleRelease
 
-      - name: Upload release outputs (unsigned unless release secrets are configured)
+      - name: Upload release APK and App Bundle
         if: success()
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
