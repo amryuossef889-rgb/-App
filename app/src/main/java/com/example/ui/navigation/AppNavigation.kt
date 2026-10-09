@@ -119,7 +119,7 @@ fun AppNavigation(
             topBar = {
                 AppTopBar(
                     title = topBarTitle,
-                    canNavigateBack = !isTopLevelRoute,
+                    canNavigateBack = !isTopLevelRoute && currentRoute != Screen.Welcome.route,
                     onNavigateBack = { navController.navigateUp() }
                 )
             },
