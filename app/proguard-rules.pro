@@ -19,3 +19,10 @@
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
 #-renamesourcefileattribute SourceFile
+
+# Preserve runtime metadata consumed by Moshi and Kotlin.
+-keepattributes Signature,*Annotation*,InnerClasses,EnclosingMethod
+-keep @com.squareup.moshi.JsonClass class * { *; }
+-keep class com.example.data.model.** { *; }
+-keep class **JsonAdapter { *; }
+-dontwarn javax.annotation.**
