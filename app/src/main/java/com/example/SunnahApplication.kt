@@ -21,6 +21,10 @@ class SunnahApplication : Application() {
 
         CoroutineScope(Dispatchers.IO).launch {
             try {
+                // Ensure the progress row exists once. This does not overwrite an existing
+                // row, so completed Sunnahs and streak data survive normal app/device restarts.
+                sunnahRepository.ensureUserProgressInitialized()
+
                 val settings = settingsRepository.settingsFlow.first()
                 if (settings.reminderEnabled) {
                     NotificationHelper.scheduleDailyAlarm(
