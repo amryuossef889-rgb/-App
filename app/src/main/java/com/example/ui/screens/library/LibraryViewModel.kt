@@ -1,5 +1,6 @@
 package com.example.ui.screens.library
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -20,32 +21,22 @@ data class LibraryUiState(
 )
 
 class LibraryViewModel(
-    private val sunnahRepository: SunnahRepository
+    private val sunnahRepository: SunnahRepository,
+    private val appContext: Context
 ) : ViewModel() {
-
     private val _books = sunnahRepository.getAllPdfBooks()
     private val _isAdminAuthenticated = MutableStateFlow(false)
 
-    val uiState: StateFlow<LibraryUiState> = combine(
-        _books,
-        _isAdminAuthenticated
-    ) { books, isAdmin ->
-        LibraryUiState(
-            books = books,
-            isAdminAuthenticated = isAdmin,
-            isLoading = false
-        )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = LibraryUiState()
-    )
+    val uiState: StateFlow<LibraryUiState> = combine(_books, _isAdminAuthenticated) { books, isAdmin ->
+        LibraryUiState(books = books, isAdminAuthenticated = isAdmin, isLoading = false)
+    }.stateIn(viewModelScope, SharingStarted.WhileSubscribed(5000), LibraryUiState())
 
+    fun isAdminPasswordConfigured(): Boolean = PasswordHasher.isConfigured(appContext)
+
+    /** First use creates a device-local passphrase; later uses verify it. */
     fun authenticateAdmin(password: String): Boolean {
-        val isValid = PasswordHasher.verifyPassword(password)
-        if (isValid) {
-            _isAdminAuthenticated.value = true
-        }
+        val isValid = PasswordHasher.verifyOrCreate(appContext, password)
+        if (isValid) _isAdminAuthenticated.value = true
         return isValid
     }
 
@@ -54,32 +45,34 @@ class LibraryViewModel(
     }
 
     fun deleteBook(id: Int) {
-        viewModelScope.launch {
-            sunnahRepository.deletePdfBook(id)
-        }
+        viewModelScope.launch { sunnahRepository.deletePdfBook(id) }
     }
 
     fun addBook(title: String, description: String, filename: String, size: Long) {
+        if (title.isBlank() || filename.isBlank() || size <= 0L) return
         viewModelScope.launch {
-            val book = PdfBook(
-                title = title,
-                description = description,
-                filename = filename,
-                size = size,
-                addedDate = System.currentTimeMillis(),
-                isBuiltin = false
+            sunnahRepository.insertPdfBook(
+                PdfBook(
+                    title = title.trim().take(160),
+                    description = description.trim().take(1000),
+                    filename = filename,
+                    size = size,
+                    addedDate = System.currentTimeMillis(),
+                    isBuiltin = false
+                )
             )
-            sunnahRepository.insertPdfBook(book)
         }
     }
 
     companion object {
-        fun provideFactory(sunnahRepository: SunnahRepository): ViewModelProvider.Factory =
-            object : ViewModelProvider.Factory {
-                @Suppress("UNCHECKED_CAST")
-                override fun <T : ViewModel> create(modelClass: Class<T>): T {
-                    return LibraryViewModel(sunnahRepository) as T
-                }
+        fun provideFactory(
+            sunnahRepository: SunnahRepository,
+            context: Context
+        ): ViewModelProvider.Factory = object : ViewModelProvider.Factory {
+            @Suppress("UNCHECKED_CAST")
+            override fun <T : ViewModel> create(modelClass: Class<T>): T {
+                return LibraryViewModel(sunnahRepository, context.applicationContext) as T
             }
+        }
     }
 }
