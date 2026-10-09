@@ -82,7 +82,7 @@ fun HomeScreen(
     }
 
     val currentOrder = uiState.currentSunnahWithHadith?.sunnah?.orderIndex ?: 1
-    val currentStreak = uiState.userProgress?.currentStreak ?: 0
+    val currentStreak = com.example.data.repository.SunnahRepository.effectiveCurrentStreak(uiState.userProgress)
 
     LazyColumn(
         modifier = modifier
