@@ -3,6 +3,7 @@ package com.example.ui.theme
 import android.app.Activity
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Typography
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
@@ -10,6 +11,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.SideEffect
 import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalView
 import androidx.core.view.WindowCompat
@@ -58,6 +60,33 @@ private val DarkColorScheme = darkColorScheme(
     outline = MinimalDarkBorder
 )
 
+private fun scaledTypography(size: AppFontSize): Typography {
+    val factor = when (size) {
+        AppFontSize.SMALL -> 0.90f
+        AppFontSize.MEDIUM -> 1.0f
+        AppFontSize.LARGE -> 1.15f
+    }
+    fun TextStyle.scaled() = copy(fontSize = fontSize * factor, lineHeight = lineHeight * factor)
+
+    return Typography(
+        displayLarge = Typography.displayLarge.scaled(),
+        displayMedium = Typography.displayMedium.scaled(),
+        displaySmall = Typography.displaySmall.scaled(),
+        headlineLarge = Typography.headlineLarge.scaled(),
+        headlineMedium = Typography.headlineMedium.scaled(),
+        headlineSmall = Typography.headlineSmall.scaled(),
+        titleLarge = Typography.titleLarge.scaled(),
+        titleMedium = Typography.titleMedium.scaled(),
+        titleSmall = Typography.titleSmall.scaled(),
+        bodyLarge = Typography.bodyLarge.scaled(),
+        bodyMedium = Typography.bodyMedium.scaled(),
+        bodySmall = Typography.bodySmall.scaled(),
+        labelLarge = Typography.labelLarge.scaled(),
+        labelMedium = Typography.labelMedium.scaled(),
+        labelSmall = Typography.labelSmall.scaled()
+    )
+}
+
 @Composable
 fun SunnahTheme(
     themeMode: ThemeMode = ThemeMode.SYSTEM,
@@ -71,6 +100,7 @@ fun SunnahTheme(
     }
 
     val colorScheme = if (darkTheme) DarkColorScheme else LightColorScheme
+    val appTypography = scaledTypography(fontSize)
     val view = LocalView.current
 
     if (!view.isInEditMode) {
@@ -87,7 +117,7 @@ fun SunnahTheme(
     CompositionLocalProvider(LocalAppFontSize provides fontSize) {
         MaterialTheme(
             colorScheme = colorScheme,
-            typography = Typography,
+            typography = appTypography,
             content = content
         )
     }

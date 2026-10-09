@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -31,7 +32,7 @@ enum class AppFontSize {
 }
 
 data class AppSettings(
-    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val themeMode: ThemeMode = ThemeMode.DARK,
     val backgroundMode: BackgroundMode = BackgroundMode.DEFAULT,
     val customBackgroundPath: String? = null,
     val backgroundOpacity: Float = 0.25f,
@@ -55,16 +56,17 @@ class SettingsRepository(private val context: Context) {
         private val KEY_REMINDER_HOUR = intPreferencesKey("reminder_hour")
         private val KEY_REMINDER_MINUTE = intPreferencesKey("reminder_minute")
         private val KEY_PERSISTENT_SUNNAH_ENABLED = booleanPreferencesKey("persistent_sunnah_enabled")
+        private val KEY_FAVORITE_SUNNAH_IDS = stringSetPreferencesKey("favorite_sunnah_ids")
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { preferences ->
-        val themeModeStr = preferences[KEY_THEME_MODE] ?: ThemeMode.SYSTEM.name
+        val themeModeStr = preferences[KEY_THEME_MODE] ?: ThemeMode.DARK.name
         val bgModeStr = preferences[KEY_BG_MODE] ?: BackgroundMode.DEFAULT.name
         val bgScaleStr = preferences[KEY_BG_SCALE] ?: BackgroundScale.CROP.name
         val fontSizeStr = preferences[KEY_FONT_SIZE] ?: AppFontSize.MEDIUM.name
 
         AppSettings(
-            themeMode = runCatching { ThemeMode.valueOf(themeModeStr) }.getOrDefault(ThemeMode.SYSTEM),
+            themeMode = runCatching { ThemeMode.valueOf(themeModeStr) }.getOrDefault(ThemeMode.DARK),
             backgroundMode = runCatching { BackgroundMode.valueOf(bgModeStr) }.getOrDefault(BackgroundMode.DEFAULT),
             customBackgroundPath = preferences[KEY_CUSTOM_BG_PATH],
             backgroundOpacity = preferences[KEY_BG_OPACITY] ?: 0.25f,
@@ -75,6 +77,21 @@ class SettingsRepository(private val context: Context) {
             reminderMinute = preferences[KEY_REMINDER_MINUTE] ?: 0,
             persistentSunnahEnabled = preferences[KEY_PERSISTENT_SUNNAH_ENABLED] ?: false
         )
+    }
+
+    val favoriteSunnahIdsFlow: Flow<Set<Int>> = context.dataStore.data.map { preferences ->
+        preferences[KEY_FAVORITE_SUNNAH_IDS]
+            .orEmpty()
+            .mapNotNull { it.toIntOrNull() }
+            .toSet()
+    }
+
+    suspend fun toggleFavoriteSunnah(id: Int) {
+        context.dataStore.edit { preferences ->
+            val current = preferences[KEY_FAVORITE_SUNNAH_IDS].orEmpty().toMutableSet()
+            if (!current.add(id.toString())) current.remove(id.toString())
+            preferences[KEY_FAVORITE_SUNNAH_IDS] = current
+        }
     }
 
     suspend fun updateThemeMode(mode: ThemeMode) {
