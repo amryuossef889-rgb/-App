@@ -35,7 +35,9 @@ class HomeViewModel(
         _allSunnahs
     ) { progress, sunnahs ->
         val currentId = progress?.currentSunnahId ?: 1
+        val allSunnahIds = sunnahs.mapTo(mutableSetOf()) { it.sunnah.id }
         val completedSet = SunnahRepository.parseCompletedSunnahIds(progress?.completedSunnahs ?: "[]")
+            .intersect(allSunnahIds)
         val currentSunnah = sunnahs.find { it.sunnah.id == currentId } ?: sunnahs.firstOrNull()
 
         // Upcoming uncompleted sunnahs

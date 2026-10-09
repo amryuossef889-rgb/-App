@@ -42,8 +42,10 @@ fun ProgressScreen(
     val completed = com.example.data.repository.SunnahRepository
         .parseCompletedSunnahIds(progress?.completedSunnahs ?: "[]")
     val total = sunnahs.size.coerceAtLeast(1)
-    val completedCount = completed.size
+    val validIds = sunnahs.mapTo(mutableSetOf()) { it.sunnah.id }
+    val completedCount = completed.intersect(validIds).size
     val percentage = (completedCount.toFloat() / total.toFloat()).coerceIn(0f, 1f)
+    val currentStreak = com.example.data.repository.SunnahRepository.effectiveCurrentStreak(progress)
 
     val achievements = listOf(
         Achievement("بداية مباركة", "أنجز أول سُنّة في مسارك", 1, completedCount),
@@ -73,8 +75,10 @@ fun ProgressScreen(
                     Text("${completedCount} من ${sunnahs.size} سُنّة موثقة", style = MaterialTheme.typography.bodyLarge)
                     Spacer(Modifier.height(12.dp))
                     LinearProgressIndicator(progress = { percentage }, modifier = Modifier.fillMaxWidth())
+                    Spacer(Modifier.height(6.dp))
+                    Text("${(percentage * 100).toInt()}% من السنن مكتملة", style = MaterialTheme.typography.labelMedium, color = MaterialTheme.colorScheme.primary)
                     Spacer(Modifier.height(8.dp))
-                    Text("السلسلة الحالية: ${progress?.currentStreak ?: 0} يوم • أطول سلسلة: ${progress?.longestStreak ?: 0} يوم",
+                    Text("السلسلة الحالية: $currentStreak يوم • أطول سلسلة: ${progress?.longestStreak ?: 0} يوم",
                         style = MaterialTheme.typography.bodyMedium)
                 }
             }

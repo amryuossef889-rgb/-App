@@ -37,6 +37,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -47,6 +48,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.ui.components.DifficultyBadge
@@ -82,7 +84,7 @@ fun HomeScreen(
     }
 
     val currentOrder = uiState.currentSunnahWithHadith?.sunnah?.orderIndex ?: 1
-    val currentStreak = uiState.userProgress?.currentStreak ?: 0
+    val currentStreak = com.example.data.repository.SunnahRepository.effectiveCurrentStreak(uiState.userProgress)
 
     LazyColumn(
         modifier = modifier
@@ -312,70 +314,62 @@ fun HomeScreen(
 
                             Spacer(modifier = Modifier.height(8.dp))
 
-                            // Sunnah Description
+                            // Compact meaning preview; the complete narration opens on the detail screen.
+                            Spacer(modifier = Modifier.height(8.dp))
+
+                            Text(
+                                text = "خلاصة المعنى",
+                                style = MaterialTheme.typography.labelLarge.copy(
+                                    fontWeight = FontWeight.Bold,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
                             Text(
                                 text = todaySunnah.sunnah.description,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis,
                                 style = MaterialTheme.typography.bodyMedium.copy(
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     lineHeight = 22.sp
                                 )
                             )
 
-                            // Authentic Hadith Callout Box with right emerald border
                             if (todaySunnah.hadith != null) {
-                                Spacer(modifier = Modifier.height(16.dp))
+                                Spacer(modifier = Modifier.height(12.dp))
 
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
                                         .clip(RoundedCornerShape(16.dp))
                                         .background(MaterialTheme.colorScheme.surfaceVariant)
+                                        .padding(horizontal = 14.dp, vertical = 10.dp),
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween
                                 ) {
-                                    // Right accent stripe
-                                    Box(
-                                        modifier = Modifier
-                                            .width(4.dp)
-                                            .background(MinimalEmeraldAccent)
-                                    )
-
-                                    Column(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(16.dp)
-                                    ) {
+                                    Column(modifier = Modifier.weight(1f)) {
                                         Text(
-                                            text = "« ${todaySunnah.hadith.arabicText} »",
-                                            style = MaterialTheme.typography.bodyMedium.copy(
-                                                fontFamily = FontFamily.Serif,
-                                                fontWeight = FontWeight.Medium,
-                                                lineHeight = 26.sp,
-                                                color = MaterialTheme.colorScheme.onSurface
+                                            text = todaySunnah.hadith.narrator.ifEmpty { "حديث شريف" },
+                                            style = MaterialTheme.typography.labelMedium.copy(
+                                                fontWeight = FontWeight.Bold,
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                                            ),
+                                            maxLines = 1,
+                                            overflow = TextOverflow.Ellipsis
+                                        )
+                                        Spacer(modifier = Modifier.height(3.dp))
+                                        Text(
+                                            text = if (todaySunnah.hadith.collection == "SAHIH_BUKHARI") "صحيح البخاري" else "صحيح مسلم",
+                                            style = MaterialTheme.typography.labelSmall.copy(
+                                                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.8f)
                                             )
                                         )
-
-                                        Spacer(modifier = Modifier.height(10.dp))
-
-                                        Row(
-                                            modifier = Modifier.fillMaxWidth(),
-                                            horizontalArrangement = Arrangement.SpaceBetween,
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Text(
-                                                text = todaySunnah.hadith.narrator.ifEmpty { "حديث شريف" },
-                                                style = MaterialTheme.typography.labelSmall.copy(
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
-                                                )
-                                            )
-
-                                            Text(
-                                                text = if (todaySunnah.hadith.collection == "SAHIH_BUKHARI") "صحيح البخاري" else "صحيح مسلم",
-                                                style = MaterialTheme.typography.labelSmall.copy(
-                                                    fontWeight = FontWeight.Bold,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.75f)
-                                                )
-                                            )
-                                        }
+                                    }
+                                    TextButton(
+                                        onClick = { onNavigateToSunnahDetail(todaySunnah.sunnah.id) },
+                                        modifier = Modifier.testTag("read_full_hadith_button")
+                                    ) {
+                                        Text("اقرأ الحديث كاملًا", fontWeight = FontWeight.Bold)
                                     }
                                 }
                             }
