@@ -24,6 +24,8 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
@@ -65,7 +67,7 @@ fun AppNavigation(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
-    val welcomeComplete = remember { context.getSharedPreferences("sunnah_launch", android.content.Context.MODE_PRIVATE).getBoolean("welcome_complete", false) }
+    var welcomeComplete by remember { mutableStateOf(context.getSharedPreferences("sunnah_launch", android.content.Context.MODE_PRIVATE).getBoolean("welcome_complete", false)) }
 
     val settings by settingsViewModel.settings.collectAsState()
 
@@ -74,8 +76,8 @@ fun AppNavigation(
         contract = ActivityResultContracts.RequestPermission()
     ) { _ -> }
 
-    LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    LaunchedEffect(welcomeComplete) {
+        if (welcomeComplete && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     context,
                     Manifest.permission.POST_NOTIFICATIONS
@@ -118,7 +120,7 @@ fun AppNavigation(
     ) {
         Scaffold(
             topBar = {
-                AppTopBar(
+                if (currentRoute != Screen.Welcome.route) AppTopBar(
                     title = topBarTitle,
                     canNavigateBack = !isTopLevelRoute && currentRoute != Screen.Welcome.route,
                     onNavigateBack = { navController.navigateUp() }
@@ -156,7 +158,8 @@ fun AppNavigation(
                         WelcomeScreen(
                             onContinue = {
                                 context.getSharedPreferences("sunnah_launch", android.content.Context.MODE_PRIVATE)
-                                    .edit().putBoolean("welcome_complete", true).apply()
+                                     .edit().putBoolean("welcome_complete", true).apply()
+                                welcomeComplete = true
                                 navController.navigate(Screen.Home.route) {
                                     popUpTo(Screen.Welcome.route) { inclusive = true }
                                     launchSingleTop = true
