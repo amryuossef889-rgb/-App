@@ -155,6 +155,28 @@ class SunnahRepository(private val db: AppDatabase) {
     }
 
     companion object {
+        fun effectiveCurrentStreak(
+            progress: UserProgress?,
+            todayDate: String,
+            yesterdayDate: String
+        ): Int {
+            if (progress == null) return 0
+            return if (progress.lastCompletedDate == todayDate ||
+                progress.lastCompletedDate == yesterdayDate
+            ) progress.currentStreak.coerceAtLeast(0) else 0
+        }
+
+        fun effectiveCurrentStreak(progress: UserProgress?): Int {
+            val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.US)
+            val now = Date()
+            val today = formatter.format(now)
+            val calendar = Calendar.getInstance().apply {
+                time = now
+                add(Calendar.DAY_OF_YEAR, -1)
+            }
+            return effectiveCurrentStreak(progress, today, formatter.format(calendar.time))
+        }
+
         fun parseCompletedSunnahIds(jsonString: String): Set<Int> {
             val set = mutableSetOf<Int>()
             try {
