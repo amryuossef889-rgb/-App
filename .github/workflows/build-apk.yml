@@ -159,6 +159,9 @@ jobs:
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug
 
+      - name: Run JVM and Robolectric tests
+        run: gradle --no-daemon testDebugUnitTest
+
       - name: Upload installable debug APK
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02
         with:
