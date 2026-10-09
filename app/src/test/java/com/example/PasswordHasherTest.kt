@@ -1,5 +1,7 @@
 package com.example
 
+import android.content.Context
+import androidx.test.core.app.ApplicationProvider
 import com.example.ui.utils.PasswordHasher
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -7,19 +9,17 @@ import org.junit.Test
 
 class PasswordHasherTest {
     @Test
-    fun acceptsConfiguredAdminPassword() {
-        assertTrue(PasswordHasher.verifyPassword("SunnahAdmin2026"))
-    }
+    fun firstUseCreatesPassphraseAndSubsequentUseVerifiesIt() {
+        val context = ApplicationProvider.getApplicationContext<Context>()
+        context.getSharedPreferences("admin_gate_v2", Context.MODE_PRIVATE).edit().clear().commit()
 
-    @Test
-    fun rejectsWrongAndBlankPasswords() {
-        assertFalse(PasswordHasher.verifyPassword("wrong-password"))
-        assertFalse(PasswordHasher.verifyPassword(""))
-        assertFalse(PasswordHasher.verifyPassword("   "))
-    }
+        assertFalse(PasswordHasher.isConfigured(context))
+        assertFalse(PasswordHasher.verifyOrCreate(context, "short"))
+        assertTrue(PasswordHasher.verifyOrCreate(context, "local-passphrase-93"))
+        assertTrue(PasswordHasher.isConfigured(context))
+        assertTrue(PasswordHasher.verifyOrCreate(context, "local-passphrase-93"))
+        assertFalse(PasswordHasher.verifyOrCreate(context, "wrong-passphrase"))
 
-    @Test
-    fun trimsOuterWhitespace() {
-        assertTrue(PasswordHasher.verifyPassword("  SunnahAdmin2026  "))
+        context.getSharedPreferences("admin_gate_v2", Context.MODE_PRIVATE).edit().clear().commit()
     }
 }
