@@ -188,10 +188,18 @@ fun AdminLibraryScreen(
                                 IconButton(
                                     onClick = {
                                         // Delete file from internal storage
-                                        val file = File(File(context.filesDir, "pdfs"), book.filename)
-                                        if (file.exists()) file.delete()
-                                        viewModel.deleteBook(book.id)
-                                        Toast.makeText(context, "تم حذف الكتاب", Toast.LENGTH_SHORT).show()
+                                        val pdfDir = File(context.filesDir, "pdfs").canonicalFile
+                                        val file = File(pdfDir, book.filename).canonicalFile
+                                        if (file.parentFile == pdfDir && book.filename.matches(Regex("pdf_[a-fA-F0-9-]+\\.pdf"))) {
+                                            if (file.exists() && !file.delete()) {
+                                                Toast.makeText(context, "تعذر حذف ملف الكتاب", Toast.LENGTH_LONG).show()
+                                                return@IconButton
+                                            }
+                                            viewModel.deleteBook(book.id)
+                                            Toast.makeText(context, "تم حذف الكتاب", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "اسم ملف غير صالح؛ لم يتم الحذف", Toast.LENGTH_LONG).show()
+                                        }
                                     }
                                 ) {
                                     Icon(
