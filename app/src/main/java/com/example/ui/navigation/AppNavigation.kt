@@ -5,6 +5,16 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -29,6 +39,7 @@ import com.example.ui.components.AppBottomBar
 import com.example.ui.components.AppTopBar
 import com.example.ui.screens.detail.SunnahDetailScreen
 import com.example.ui.screens.detail.SunnahDetailViewModel
+import com.example.ui.screens.welcome.WelcomeScreen
 import com.example.ui.screens.home.HomeScreen
 import com.example.ui.screens.home.HomeViewModel
 import com.example.ui.screens.library.AdminLibraryScreen
@@ -53,6 +64,7 @@ fun AppNavigation(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    val welcomeComplete = remember { context.getSharedPreferences("sunnah_launch", android.content.Context.MODE_PRIVATE).getBoolean("welcome_complete", false) }
 
     val settings by settingsViewModel.settings.collectAsState()
 
@@ -74,6 +86,7 @@ fun AppNavigation(
     }
 
     val isTopLevelRoute = currentRoute in listOf(
+        Screen.Welcome.route,
         Screen.Home.route,
         Screen.SunnahList.route,
         Screen.Search.route,
@@ -136,8 +149,22 @@ fun AppNavigation(
             ) {
                 NavHost(
                     navController = navController,
-                    startDestination = Screen.Home.route
+                    startDestination = if (welcomeComplete) Screen.Home.route else Screen.Welcome.route
                 ) {
+                    // First-run welcome screen
+                    composable(Screen.Welcome.route) {
+                        WelcomeScreen(
+                            onContinue = {
+                                context.getSharedPreferences("sunnah_launch", android.content.Context.MODE_PRIVATE)
+                                    .edit().putBoolean("welcome_complete", true).apply()
+                                navController.navigate(Screen.Home.route) {
+                                    popUpTo(Screen.Welcome.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
+                    }
+
                     // Home
                     composable(Screen.Home.route) {
                         val homeViewModel: HomeViewModel = viewModel(
