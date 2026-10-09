@@ -10,7 +10,9 @@ Working branch: `audit/security-ui-refresh` (proposed changes in PR #3).
 - Removed `fallbackToDestructiveMigration()` so a future schema mismatch cannot silently erase local progress. A future schema change must ship a tested migration; Room will fail explicitly rather than destroy data.
 - Replaced template backup rules with explicit includes for the app database (which contains user progress) and the DataStore settings file for both cloud backup and device transfer.
 - Enabled R8/resource shrinking for release and made release signing conditional on a supplied keystore plus all required environment variables. No signing secrets or keystore are committed.
-- Updated the home screen with a branded petrol-teal daily Sunnah hero and set new installs to the dark theme; refined the global navy/teal/ivory palette.
+- Updated the home screen with a branded petrol-teal daily Sunnah hero and shortcuts for the Sunnah catalogue and favorites; refined the global navy/teal/ivory palette and set new installs to dark mode.
+- Added persistent favorites using Preferences DataStore, with add/remove controls on Sunnah details and a dedicated favorites screen. This avoids changing the Room schema for a user-created feature.
+- Removed `USE_EXACT_ALARM`, which is restricted to eligible alarm/calendar use cases; reminders retain `SCHEDULE_EXACT_ALARM` with an inexact fallback when exact scheduling is denied.
 
 ## Remaining items requiring verification / remediation
 
