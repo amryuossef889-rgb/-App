@@ -86,7 +86,6 @@ fun AppNavigation(
     }
 
     val isTopLevelRoute = currentRoute in listOf(
-        Screen.Welcome.route,
         Screen.Home.route,
         Screen.SunnahList.route,
         Screen.Search.route,
