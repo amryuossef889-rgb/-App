@@ -65,6 +65,7 @@ fun HomeScreen(
     viewModel: HomeViewModel,
     onNavigateToSunnahDetail: (Int) -> Unit,
     onNavigateToSunnahList: () -> Unit,
+    onNavigateToFavorites: () -> Unit,
     onNavigateToProgress: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -173,6 +174,40 @@ fun HomeScreen(
                             color = Color(0xFFD1F4F0),
                             style = MaterialTheme.typography.labelLarge
                         )
+                    }
+                }
+            }
+        }
+
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Card(
+                    modifier = Modifier.weight(1f).clickable { onNavigateToSunnahList() },
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.35f))
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                        Text("☼", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
+                        Spacer(Modifier.height(6.dp))
+                        Text("تصفّح السنن", fontWeight = FontWeight.Bold)
+                        Text("اكتشف المزيد", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
+                    }
+                }
+                Card(
+                    modifier = Modifier.weight(1f).clickable { onNavigateToFavorites() },
+                    shape = RoundedCornerShape(18.dp),
+                    colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface),
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.4f))
+                ) {
+                    Column(Modifier.fillMaxWidth().padding(16.dp)) {
+                        Text("☆", color = MaterialTheme.colorScheme.primary, style = MaterialTheme.typography.titleLarge)
+                        Spacer(Modifier.height(6.dp))
+                        Text("المفضلة", fontWeight = FontWeight.Bold)
+                        Text("سننك المحفوظة", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
                     }
                 }
             }
