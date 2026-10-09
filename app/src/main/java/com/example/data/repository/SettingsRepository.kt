@@ -8,6 +8,7 @@ import androidx.datastore.preferences.core.edit
 import androidx.datastore.preferences.core.floatPreferencesKey
 import androidx.datastore.preferences.core.intPreferencesKey
 import androidx.datastore.preferences.core.stringPreferencesKey
+import androidx.datastore.preferences.core.stringSetPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
@@ -55,6 +56,7 @@ class SettingsRepository(private val context: Context) {
         private val KEY_REMINDER_HOUR = intPreferencesKey("reminder_hour")
         private val KEY_REMINDER_MINUTE = intPreferencesKey("reminder_minute")
         private val KEY_PERSISTENT_SUNNAH_ENABLED = booleanPreferencesKey("persistent_sunnah_enabled")
+        private val KEY_FAVORITE_SUNNAH_IDS = stringSetPreferencesKey("favorite_sunnah_ids")
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { preferences ->
@@ -75,6 +77,21 @@ class SettingsRepository(private val context: Context) {
             reminderMinute = preferences[KEY_REMINDER_MINUTE] ?: 0,
             persistentSunnahEnabled = preferences[KEY_PERSISTENT_SUNNAH_ENABLED] ?: false
         )
+    }
+
+    val favoriteSunnahIdsFlow: Flow<Set<Int>> = context.dataStore.data.map { preferences ->
+        preferences[KEY_FAVORITE_SUNNAH_IDS]
+            .orEmpty()
+            .mapNotNull { it.toIntOrNull() }
+            .toSet()
+    }
+
+    suspend fun toggleFavoriteSunnah(id: Int) {
+        context.dataStore.edit { preferences ->
+            val current = preferences[KEY_FAVORITE_SUNNAH_IDS].orEmpty().toMutableSet()
+            if (!current.add(id.toString())) current.remove(id.toString())
+            preferences[KEY_FAVORITE_SUNNAH_IDS] = current
+        }
     }
 
     suspend fun updateThemeMode(mode: ThemeMode) {
