@@ -5,17 +5,20 @@ Working branch: `audit/security-ui-refresh`.
 
 ## Confirmed issue fixed in this branch
 
-- `SunnahOverlayService` is started as a foreground service, but it was not declared in `AndroidManifest.xml`. Android can reject service startup and the persistent overlay feature may fail. Added a non-exported service declaration with the Android 14+ `specialUse` foreground-service type and required subtype property.
-- Restricted the exported boot receiver with `android.permission.RECEIVE_BOOT_COMPLETED` so arbitrary third-party apps cannot directly invoke it.
+- `SunnahOverlayService` is now declared as non-exported with the Android 14+ `specialUse` foreground-service type, subtype property, and matching permission.
+- Restricted the exported boot receiver with `android.permission.RECEIVE_BOOT_COMPLETED`.
+- Removed `fallbackToDestructiveMigration()` so a future schema mismatch cannot silently erase local progress. A future schema change must ship a tested migration; Room will fail explicitly rather than destroy data.
+- Replaced template backup rules with explicit includes for the app database (which contains user progress) and the DataStore settings file for both cloud backup and device transfer.
+- Enabled R8/resource shrinking for release and made release signing conditional on a supplied keystore plus all required environment variables. No signing secrets or keystore are committed.
+- Updated the home screen with a branded petrol-teal daily Sunnah hero and set new installs to the dark theme; refined the global navy/teal/ivory palette.
 
 ## Remaining items requiring verification / remediation
 
-1. **Backup policy needs an explicit decision.** The manifest enables Android backup while backup rule files contain only templates/comments. Verify which app data is included and explicitly exclude transient/private state where appropriate.
-2. **Database migration risk.** `AppDatabase` uses `fallbackToDestructiveMigration()`; a schema version change without a migration can delete user progress and library data. Replace with tested migrations before changing the schema version.
-3. **Release hardening.** Release builds currently disable minification. Evaluate R8/minification and run release smoke tests before enabling it; signing depends on environment variables and a local keystore path, so validate the release pipeline without committing signing secrets.
-4. **CI supply-chain hardening.** GitHub Actions are referenced by major-version tags, and the workflow downloads pinned-version source JSON without checksum verification. Pin actions to reviewed commit SHAs and verify downloaded source checksums.
-5. **Functional test coverage.** Verify notification permission denial, exact-alarm permission denial, reboot rescheduling, overlay permission revocation, database initialization, migrations, and Arabic search on supported Android versions.
-6. **Full security review still required.** This review is based on selected source files and repository metadata; it is not a guarantee that the entire codebase is free of vulnerabilities. Run dependency scanning, static analysis, and a full build/test suite before release.
+1. **CI supply-chain hardening remains open.** Actions are still referenced by major-version tags, and downloaded hadith source JSON does not yet have checksum verification. Pin actions to reviewed immutable SHAs and verify upstream source integrity.
+2. **Migration coverage remains open.** Destructive fallback is removed, but no schema version bump or migration has been introduced. Add and test a Room migration whenever entities/schema change; a schema mismatch now fails safely instead of deleting user data.
+3. **Release validation is in progress.** R8/resource shrinking is enabled; verify release build and run smoke tests. A production-signed APK requires a private keystore and passwords supplied through GitHub Actions secrets or local environment variables.
+4. **Functional test coverage remains to be verified.** Test notification permission denial, exact-alarm permission denial, reboot rescheduling, overlay permission revocation, database initialization, migration behavior, and Arabic search on supported Android versions.
+5. **Full security review still required.** This is a focused code review, not a guarantee that the entire codebase is vulnerability-free. Run dependency scanning, static analysis, and full automated/device tests before release.
 
 ## UI direction
 
