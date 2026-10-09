@@ -1,7 +1,7 @@
 package com.example
 
 import android.content.Context
-import androidx.test.core.app.ApplicationProvider
+import org.robolectric.RuntimeEnvironment
 import com.example.ui.utils.PasswordHasher
 import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
@@ -10,7 +10,7 @@ import org.junit.Test
 class PasswordHasherTest {
     @Test
     fun firstUseCreatesPassphraseAndSubsequentUseVerifiesIt() {
-        val context = ApplicationProvider.getApplicationContext<Context>()
+        val context = RuntimeEnvironment.getApplication()
         context.getSharedPreferences("admin_gate_v2", Context.MODE_PRIVATE).edit().clear().commit()
 
         assertFalse(PasswordHasher.isConfigured(context))
