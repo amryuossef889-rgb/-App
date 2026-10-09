@@ -23,6 +23,17 @@ Merged to `main` in commit `c149a022aaacdc483808e29bc484bf23e77063f0`; launcher 
 4. **Functional test coverage remains to be verified.** Test notification permission denial, exact-alarm permission denial, reboot rescheduling, overlay permission revocation, database initialization, migration behavior, and Arabic search on supported Android versions.
 5. **Full security review still required.** This is a focused code review, not a guarantee that the entire codebase is vulnerability-free. Run dependency scanning, static analysis, and full automated/device tests before release.
 
+## Production signing setup
+
+The workflow can produce a signed Release APK and AAB when these protected GitHub Actions repository secrets are configured:
+
+- `ANDROID_KEYSTORE_BASE64`: the release keystore file encoded as Base64.
+- `ANDROID_STORE_PASSWORD`: keystore password.
+- `ANDROID_KEY_PASSWORD`: private-key password.
+- `ANDROID_KEY_ALIAS`: alias of the signing key.
+
+Keep the keystore and passwords private. Never commit them to the repository or print them in workflow logs. If the secrets are absent, CI still builds Release outputs, but those outputs are not signed with a production key; use the signed Debug APK only for testing.
+
 ## UI direction
 
 Use the supplied reference as the target: Arabic RTL layout; deep navy/teal surfaces; restrained turquoise highlights; warm ivory reading screen; clear hadith source/grade metadata; accessible type sizing; consistent bottom navigation; explicit empty/loading/error states. The launcher uses the repository's existing app_icon.png asset. Preserve repository/database and notification behavior while refactoring composables.
