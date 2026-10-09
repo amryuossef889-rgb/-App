@@ -4,6 +4,7 @@ import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -26,7 +28,9 @@ fun StreakCard(
     totalCount: Int = 100,
     modifier: Modifier = Modifier
 ) {
-    val progress = if (totalCount > 0) completedCount.toFloat() / totalCount else 0f
+    val safeTotal = totalCount.coerceAtLeast(0)
+    val safeCompleted = completedCount.coerceIn(0, safeTotal)
+    val progress = if (safeTotal > 0) safeCompleted.toFloat() / safeTotal.toFloat() else 0f
     val percent = (progress * 100).toInt()
 
     Column(
@@ -38,7 +42,7 @@ fun StreakCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Card(
-                modifier = Modifier.weight(1f).height(96.dp),
+                modifier = Modifier.weight(1f).height(100.dp),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.72f)
@@ -47,7 +51,8 @@ fun StreakCard(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp).fillMaxHeight()
+                    modifier = Modifier.padding(16.dp).fillMaxHeight(),
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = "السنن المكتملة",
@@ -67,7 +72,7 @@ fun StreakCard(
             }
 
             Card(
-                modifier = Modifier.weight(1f).height(96.dp),
+                modifier = Modifier.weight(1f).height(100.dp),
                 shape = RoundedCornerShape(24.dp),
                 colors = CardDefaults.cardColors(
                     containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.68f)
@@ -76,7 +81,8 @@ fun StreakCard(
                 elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp).fillMaxHeight()
+                    modifier = Modifier.padding(16.dp).fillMaxHeight(),
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = "نسبة الإنجاز",
@@ -91,6 +97,12 @@ fun StreakCard(
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary
                         )
+                    )
+                    LinearProgressIndicator(
+                        progress = { progress },
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.14f)
                     )
                 }
             }
