@@ -37,7 +37,6 @@ abstract class AppDatabase : RoomDatabase() {
                     "sunnah.db"
                 )
                 .createFromAsset("databases/sunnah.db")
-                .fallbackToDestructiveMigration()
                 .build()
                 INSTANCE = instance
                 instance
