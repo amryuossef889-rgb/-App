@@ -180,7 +180,7 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           set -euo pipefail
-          if [ -z "\${ANDROID_KEYSTORE_BASE64:-}" ]; then
+          if [ -z "${ANDROID_KEYSTORE_BASE64:-}" ]; then
             echo "No production keystore secret supplied; Release outputs will not be production-signed."
             exit 0
           fi
