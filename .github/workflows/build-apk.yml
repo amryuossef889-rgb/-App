@@ -28,12 +28,8 @@ jobs:
           set -e
           rm -rf data/raw/chapters
           mkdir -p data/raw/chapters/bukhari data/raw/chapters/muslim
-          for i in $(seq 1 97); do
-            curl -fsSL --retry 3 "https://raw.githubusercontent.com/AhmedBaset/hadith-json/ca32fd72aa16eeeb9a819c80bb65c9e78766532d/db/by_chapter/the_9_books/bukhari/$i.json" -o "data/raw/chapters/bukhari/$i.json"
-          done
-          for i in $(seq 1 56); do
-            curl -fsSL --retry 3 "https://raw.githubusercontent.com/AhmedBaset/hadith-json/v1.2.0/db/by_chapter/the_9_books/muslim/$i.json" -o "data/raw/chapters/muslim/$i.json"
-          done
+          seq 1 97 | xargs -P 8 -I{} curl -fsSL --retry 3 "https://raw.githubusercontent.com/AhmedBaset/hadith-json/ca32fd72aa16eeeb9a819c80bb65c9e78766532d/db/by_chapter/the_9_books/bukhari/{}.json" -o "data/raw/chapters/bukhari/{}.json"
+          seq 1 56 | xargs -P 8 -I{} curl -fsSL --retry 3 "https://raw.githubusercontent.com/AhmedBaset/hadith-json/ca32fd72aa16eeeb9a819c80bb65c9e78766532d/db/by_chapter/the_9_books/muslim/{}.json" -o "data/raw/chapters/muslim/{}.json"
           echo "Pinned chapter sources downloaded."
 
       - name: Expand verified Sunnah catalogue
