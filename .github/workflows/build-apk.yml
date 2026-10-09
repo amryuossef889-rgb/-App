@@ -173,7 +173,6 @@ jobs:
           if-no-files-found: error
 
       - name: Configure release signing from repository secrets (optional)
-        if: ${{ secrets.ANDROID_KEYSTORE_BASE64 != '' }}
         env:
           ANDROID_KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
           ANDROID_STORE_PASSWORD: ${{ secrets.ANDROID_STORE_PASSWORD }}
@@ -181,6 +180,10 @@ jobs:
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         run: |
           set -euo pipefail
+          if [ -z "\${ANDROID_KEYSTORE_BASE64:-}" ]; then
+            echo "No production keystore secret supplied; Release outputs will not be production-signed."
+            exit 0
+          fi
           test -n "$ANDROID_STORE_PASSWORD"
           test -n "$ANDROID_KEY_PASSWORD"
           test -n "$ANDROID_KEY_ALIAS"
