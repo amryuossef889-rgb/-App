@@ -198,7 +198,7 @@ fun AppNavigation(
                     // Library
                     composable(Screen.Library.route) {
                         val libraryViewModel: LibraryViewModel = viewModel(
-                            factory = LibraryViewModel.provideFactory(app.sunnahRepository)
+                            factory = LibraryViewModel.provideFactory(app.sunnahRepository, context)
                         )
                         LibraryScreen(
                             viewModel = libraryViewModel,
