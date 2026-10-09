@@ -136,10 +136,11 @@ fun PdfReaderScreen(
                     val renderScale = minOf(2f, 2400f / maxOf(page.width, page.height).toFloat())
                     val width = (page.width * renderScale).roundToInt().coerceAtLeast(1)
                     val height = (page.height * renderScale).roundToInt().coerceAtLeast(1)
-                    bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                    bitmap.eraseColor(android.graphics.Color.WHITE)
-                    page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-                    currentBitmap = bitmap
+                    val renderedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                    bitmap = renderedBitmap
+                    renderedBitmap.eraseColor(android.graphics.Color.WHITE)
+                    page.render(renderedBitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                    currentBitmap = renderedBitmap
                     scale = 1f
                     offsetX = 0f
                     offsetY = 0f
