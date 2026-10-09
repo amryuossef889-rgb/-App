@@ -29,6 +29,7 @@ import com.example.ui.components.AppBottomBar
 import com.example.ui.components.AppTopBar
 import com.example.ui.screens.detail.SunnahDetailScreen
 import com.example.ui.screens.detail.SunnahDetailViewModel
+import com.example.ui.screens.favorites.FavoritesScreen
 import com.example.ui.screens.home.HomeScreen
 import com.example.ui.screens.home.HomeViewModel
 import com.example.ui.screens.library.AdminLibraryScreen
@@ -85,6 +86,7 @@ fun AppNavigation(
         currentRoute == Screen.Home.route -> "سُنّة النَّبِيِّ ﷺ"
         currentRoute == Screen.SunnahList.route -> "قائمة السنن الموثقة"
         currentRoute == Screen.Search.route -> "البحث في الأحاديث"
+        currentRoute == Screen.Favorites.route -> "المفضلة"
         currentRoute == Screen.Library.route -> "مكتبة الكتب الفقهية"
         currentRoute == Screen.Settings.route -> "الإعدادات والمظهر"
         currentRoute == Screen.Progress.route -> "الإحصائيات والإنجازات"
@@ -151,6 +153,9 @@ fun AppNavigation(
                             onNavigateToSunnahList = {
                                 navController.navigate(Screen.SunnahList.route)
                             },
+                            onNavigateToFavorites = {
+                                navController.navigate(Screen.Favorites.route)
+                            },
                             onNavigateToProgress = {
                                 navController.navigate(Screen.Progress.route)
                             }
@@ -177,11 +182,22 @@ fun AppNavigation(
                     ) { backStackEntry ->
                         val sunnahId = backStackEntry.arguments?.getInt("sunnahId") ?: 1
                         val detailViewModel: SunnahDetailViewModel = viewModel(
-                            factory = SunnahDetailViewModel.provideFactory(sunnahId, app.sunnahRepository)
+                            factory = SunnahDetailViewModel.provideFactory(sunnahId, app.sunnahRepository, app.settingsRepository)
                         )
                         SunnahDetailScreen(
                             viewModel = detailViewModel,
                             onNavigateBack = { navController.navigateUp() }
+                        )
+                    }
+
+                    // Saved Sunnahs
+                    composable(Screen.Favorites.route) {
+                        FavoritesScreen(
+                            settingsRepository = app.settingsRepository,
+                            sunnahRepository = app.sunnahRepository,
+                            onOpenSunnah = { sunnahId ->
+                                navController.navigate(Screen.SunnahDetail.createRoute(sunnahId))
+                            }
                         )
                     }
 
