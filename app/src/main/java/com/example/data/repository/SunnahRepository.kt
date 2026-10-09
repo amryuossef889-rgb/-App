@@ -1,5 +1,6 @@
 package com.example.data.repository
 
+import androidx.room.withTransaction
 import com.example.data.database.AppDatabase
 import com.example.data.model.Hadith
 import com.example.data.model.PdfBook
@@ -20,22 +21,15 @@ class SunnahRepository(private val db: AppDatabase) {
 
     // Sunnahs
     fun getAllSunnahsWithHadith(): Flow<List<SunnahWithHadith>> = sunnahDao.getAllSunnahsWithHadith()
-
     fun getSunnahWithHadithById(id: Int): Flow<SunnahWithHadith?> = sunnahDao.getSunnahWithHadithById(id)
-
     suspend fun getSunnahWithHadithDirect(id: Int): SunnahWithHadith? = sunnahDao.getSunnahWithHadithDirect(id)
-
     fun getSunnahsByDifficulty(difficulty: Int): Flow<List<SunnahWithHadith>> = sunnahDao.getSunnahsByDifficulty(difficulty)
-
     fun getSunnahsByCategory(category: String): Flow<List<SunnahWithHadith>> = sunnahDao.getSunnahsByCategory(category)
-
     fun getAllCategories(): Flow<List<String>> = sunnahDao.getAllCategories()
-
     fun getSunnahsCount(): Flow<Int> = sunnahDao.getSunnahsCount()
 
     // Hadiths
     fun getHadithById(id: Int): Flow<Hadith?> = hadithDao.getHadithById(id)
-
     fun getHadithsCount(): Flow<Int> = hadithDao.getHadithsCount()
 
     fun searchHadiths(query: String, collection: String? = null): Flow<List<Hadith>> {
@@ -47,10 +41,32 @@ class SunnahRepository(private val db: AppDatabase) {
         }
     }
 
-    // User Progress
+    // User progress is stored in Room's on-device database, not only in screen state.
     fun getUserProgress(): Flow<UserProgress?> = userProgressDao.getUserProgress()
 
-    suspend fun markSunnahCompleted(sunnahId: Int): UserProgress {
+    /**
+     * Create the single progress row on first launch. INSERT OR REPLACE is never used
+     * here when a row already exists, so an existing user's progress is preserved.
+     */
+    suspend fun ensureUserProgressInitialized() {
+        db.withTransaction {
+            if (userProgressDao.getUserProgressDirect() == null) {
+                userProgressDao.insertOrUpdate(
+                    UserProgress(
+                        id = 1,
+                        currentSunnahId = 1,
+                        completedSunnahs = "[]",
+                        currentStreak = 0,
+                        longestStreak = 0,
+                        lastCompletedDate = null,
+                        startedDate = getTodayDateString()
+                    )
+                )
+            }
+        }
+    }
+
+    suspend fun markSunnahCompleted(sunnahId: Int): UserProgress = db.withTransaction {
         val currentProgress = userProgressDao.getUserProgressDirect() ?: UserProgress(
             id = 1,
             currentSunnahId = 1,
@@ -66,27 +82,17 @@ class SunnahRepository(private val db: AppDatabase) {
 
         val today = getTodayDateString()
         val yesterday = getYesterdayDateString()
-
-        val newStreak: Int
-        if (currentProgress.lastCompletedDate == today) {
-            // Already completed something today, streak maintains
-            newStreak = if (currentProgress.currentStreak == 0) 1 else currentProgress.currentStreak
-        } else if (currentProgress.lastCompletedDate == yesterday) {
-            // Consecutive day
-            newStreak = currentProgress.currentStreak + 1
-        } else {
-            // Gap or first time
-            newStreak = 1
+        val newStreak = when (currentProgress.lastCompletedDate) {
+            today -> if (currentProgress.currentStreak == 0) 1 else currentProgress.currentStreak
+            yesterday -> currentProgress.currentStreak + 1
+            else -> 1
         }
-
         val newLongestStreak = maxOf(currentProgress.longestStreak, newStreak)
 
         // Find the next uncompleted Sunnah dynamically so the catalogue can grow beyond 100 entries.
         val maxSunnahId = sunnahDao.getMaxSunnahId() ?: 1
         var nextId = sunnahId + 1
-        while (nextId <= maxSunnahId && completedSet.contains(nextId)) {
-            nextId++
-        }
+        while (nextId <= maxSunnahId && completedSet.contains(nextId)) nextId++
         if (nextId > maxSunnahId) {
             nextId = (1..maxSunnahId).firstOrNull { !completedSet.contains(it) } ?: maxSunnahId
         }
@@ -101,12 +107,11 @@ class SunnahRepository(private val db: AppDatabase) {
             longestStreak = newLongestStreak,
             lastCompletedDate = today
         )
-
         userProgressDao.insertOrUpdate(updatedProgress)
-        return updatedProgress
+        updatedProgress
     }
 
-    suspend fun toggleSunnahCompletion(sunnahId: Int): Boolean {
+    suspend fun toggleSunnahCompletion(sunnahId: Int): Boolean = db.withTransaction {
         val currentProgress = userProgressDao.getUserProgressDirect() ?: UserProgress(
             id = 1,
             currentSunnahId = 1,
@@ -117,31 +122,51 @@ class SunnahRepository(private val db: AppDatabase) {
             startedDate = getTodayDateString()
         )
         val completedSet = parseCompletedSunnahIds(currentProgress.completedSunnahs).toMutableSet()
-        val isNowCompleted = if (completedSet.contains(sunnahId)) {
+        if (completedSet.contains(sunnahId)) {
             completedSet.remove(sunnahId)
             val jsonArray = JSONArray()
             completedSet.sorted().forEach { jsonArray.put(it) }
             userProgressDao.insertOrUpdate(currentProgress.copy(completedSunnahs = jsonArray.toString()))
             false
         } else {
-            markSunnahCompleted(sunnahId)
+            // Inline the completion update inside this transaction; avoid a nested write and
+            // keep the read-modify-write operation atomic if two UI actions happen quickly.
+            completedSet.add(sunnahId)
+            val today = getTodayDateString()
+            val yesterday = getYesterdayDateString()
+            val newStreak = when (currentProgress.lastCompletedDate) {
+                today -> if (currentProgress.currentStreak == 0) 1 else currentProgress.currentStreak
+                yesterday -> currentProgress.currentStreak + 1
+                else -> 1
+            }
+            val maxSunnahId = sunnahDao.getMaxSunnahId() ?: 1
+            var nextId = sunnahId + 1
+            while (nextId <= maxSunnahId && completedSet.contains(nextId)) nextId++
+            if (nextId > maxSunnahId) {
+                nextId = (1..maxSunnahId).firstOrNull { !completedSet.contains(it) } ?: maxSunnahId
+            }
+            val jsonArray = JSONArray()
+            completedSet.sorted().forEach { jsonArray.put(it) }
+            userProgressDao.insertOrUpdate(
+                currentProgress.copy(
+                    currentSunnahId = nextId,
+                    completedSunnahs = jsonArray.toString(),
+                    currentStreak = newStreak,
+                    longestStreak = maxOf(currentProgress.longestStreak, newStreak),
+                    lastCompletedDate = today
+                )
+            )
             true
         }
-        return isNowCompleted
     }
 
     // PDF Library
     fun getAllPdfBooks(): Flow<List<PdfBook>> = pdfBookDao.getAllBooks()
-
     fun getPdfBookById(id: Int): Flow<PdfBook?> = pdfBookDao.getBookById(id)
-
     suspend fun insertPdfBook(book: PdfBook): Long = pdfBookDao.insertBook(book)
-
     suspend fun updatePdfBook(book: PdfBook) = pdfBookDao.updateBook(book)
-
     suspend fun deletePdfBook(id: Int) = pdfBookDao.deleteBook(id)
 
-    // Helper functions
     private fun getTodayDateString(): String {
         val sdf = SimpleDateFormat("yyyy-MM-dd", Locale.US)
         return sdf.format(Date())
@@ -155,15 +180,11 @@ class SunnahRepository(private val db: AppDatabase) {
     }
 
     companion object {
-        fun effectiveCurrentStreak(
-            progress: UserProgress?,
-            todayDate: String,
-            yesterdayDate: String
-        ): Int {
+        fun effectiveCurrentStreak(progress: UserProgress?, todayDate: String, yesterdayDate: String): Int {
             if (progress == null) return 0
-            return if (progress.lastCompletedDate == todayDate ||
-                progress.lastCompletedDate == yesterdayDate
-            ) progress.currentStreak.coerceAtLeast(0) else 0
+            return if (progress.lastCompletedDate == todayDate || progress.lastCompletedDate == yesterdayDate) {
+                progress.currentStreak.coerceAtLeast(0)
+            } else 0
         }
 
         fun effectiveCurrentStreak(progress: UserProgress?): Int {
@@ -181,11 +202,9 @@ class SunnahRepository(private val db: AppDatabase) {
             val set = mutableSetOf<Int>()
             try {
                 val array = JSONArray(jsonString)
-                for (i in 0 until array.length()) {
-                    set.add(array.getInt(i))
-                }
-            } catch (e: Exception) {
-                // Return empty if parse failed
+                for (i in 0 until array.length()) set.add(array.getInt(i))
+            } catch (_: Exception) {
+                // Return empty if stored JSON is malformed.
             }
             return set
         }
