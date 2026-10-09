@@ -229,6 +229,23 @@ fun SunnahDetailScreen(
             }
         }
 
+        // Persist favorites separately from the bundled hadith catalogue.
+        item {
+            OutlinedButton(
+                onClick = { viewModel.toggleFavorite() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp),
+                shape = RoundedCornerShape(14.dp),
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.7f))
+            ) {
+                Text(
+                    text = if (uiState.isFavorite) "★  إزالة من المفضلة" else "☆  إضافة إلى المفضلة",
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+
         // Completion Action Button
         item {
             Spacer(modifier = Modifier.height(8.dp))
