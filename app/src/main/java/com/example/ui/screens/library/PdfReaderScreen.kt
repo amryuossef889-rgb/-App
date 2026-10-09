@@ -146,6 +146,7 @@ fun PdfReaderScreen(
                     offsetY = 0f
                 } finally {
                     page.close()
+                    if (bitmap != null && bitmap !== currentBitmap && !bitmap.isRecycled) bitmap.recycle()
                 }
             } catch (e: Exception) {
                 e.printStackTrace()
