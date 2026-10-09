@@ -23,6 +23,11 @@ jobs:
           distribution: temurin
           java-version: '17'
 
+      - name: Generate launcher icons from repository artwork
+        run: |
+          python3 -m pip install --disable-pip-version-check Pillow
+          python3 data/scripts/generate_launcher_icons.py
+
       - name: Download pinned Bukhari and Muslim chapter data
         run: |
           set -e
