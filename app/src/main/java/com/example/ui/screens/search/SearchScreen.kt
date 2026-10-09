@@ -66,7 +66,7 @@ fun SearchScreen(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp, vertical = 6.dp),
-            placeholder = { Text("ابحث في 14,736 حديثاً (كلمة، رقم، راوٍ)...") },
+            placeholder = { Text("ابحث في ${uiState.totalHadithCount} حديثاً (كلمة، رقم، راوٍ)...") },
             leadingIcon = {
                 Icon(
                     imageVector = Icons.Default.Search,
@@ -110,14 +110,14 @@ fun SearchScreen(
             FilterChip(
                 selected = uiState.selectedCollection == "SAHIH_BUKHARI",
                 onClick = { viewModel.setCollection("SAHIH_BUKHARI") },
-                label = { Text("صحيح البخاري (7,277)") },
+                label = { Text("صحيح البخاري") },
                 shape = RoundedCornerShape(12.dp)
             )
 
             FilterChip(
                 selected = uiState.selectedCollection == "SAHIH_MUSLIM",
                 onClick = { viewModel.setCollection("SAHIH_MUSLIM") },
-                label = { Text("صحيح مسلم (7,459)") },
+                label = { Text("صحيح مسلم") },
                 shape = RoundedCornerShape(12.dp)
             )
         }

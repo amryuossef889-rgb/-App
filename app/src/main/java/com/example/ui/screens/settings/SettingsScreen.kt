@@ -102,10 +102,16 @@ fun SettingsScreen(
         if (uri != null) {
             try {
                 val bgFile = File(context.filesDir, "custom_bg.jpg")
-                context.contentResolver.openInputStream(uri)?.use { input ->
+                val inputStream = context.contentResolver.openInputStream(uri)
+                    ?: throw IllegalStateException("تعذر قراءة الصورة المحددة")
+                inputStream.use { input ->
                     FileOutputStream(bgFile).use { output ->
                         input.copyTo(output)
                     }
+                }
+                if (!bgFile.exists() || bgFile.length() == 0L) {
+                    bgFile.delete()
+                    throw IllegalArgumentException("ملف الصورة فارغ أو غير صالح")
                 }
                 viewModel.setCustomBackgroundPath(bgFile.absolutePath)
                 Toast.makeText(context, "تم تعيين الخلفية المخصصة بنجاح", Toast.LENGTH_SHORT).show()

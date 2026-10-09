@@ -34,6 +34,15 @@
             </intent-filter>
         </activity>
 
+        <service
+            android:name=".notifications.SunnahOverlayService"
+            android:exported="false"
+            android:foregroundServiceType="specialUse">
+            <property
+                android:name="android.app.PROPERTY_SPECIAL_USE_FGS_SUBTYPE"
+                android:value="User-enabled persistent Sunnah overlay and notification" />
+        </service>
+
         <receiver
             android:name=".notifications.DailyNotificationReceiver"
             android:exported="false" />

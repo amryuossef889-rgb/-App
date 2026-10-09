@@ -60,6 +60,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.math.roundToInt
 import java.io.File
 
 @Composable
@@ -92,8 +93,14 @@ fun PdfReaderScreen(
     LaunchedEffect(filename) {
         withContext(Dispatchers.IO) {
             try {
-                val file = File(File(context.filesDir, "pdfs"), filename)
-                if (!file.exists()) {
+                val pdfDir = File(context.filesDir, "pdfs").canonicalFile
+                val file = File(pdfDir, filename).canonicalFile
+                if (file.parentFile != pdfDir || !filename.matches(Regex("pdf_[a-fA-F0-9-]+\\.pdf"))) {
+                    errorMessage = "اسم ملف غير صالح"
+                    isLoading = false
+                    return@withContext
+                }
+                if (!file.exists() || !file.isFile || !file.canRead()) {
                     errorMessage = "الملف غير موجود على الجهاز"
                     isLoading = false
                     return@withContext
@@ -123,20 +130,35 @@ fun PdfReaderScreen(
         withContext(Dispatchers.IO) {
             try {
                 val page = renderer.openPage(currentPageIndex)
-                val width = page.width * 2
-                val height = page.height * 2
-                val bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
-                bitmap.eraseColor(android.graphics.Color.WHITE)
-                page.render(bitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
-                page.close()
-
-                currentBitmap = bitmap
-                scale = 1f
-                offsetX = 0f
-                offsetY = 0f
+                var bitmap: Bitmap? = null
+                try {
+                    // Cap the longest edge to avoid excessive allocations for unusually large PDFs.
+                    val renderScale = minOf(2f, 2400f / maxOf(page.width, page.height).toFloat())
+                    val width = (page.width * renderScale).roundToInt().coerceAtLeast(1)
+                    val height = (page.height * renderScale).roundToInt().coerceAtLeast(1)
+                    val renderedBitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+                    bitmap = renderedBitmap
+                    renderedBitmap.eraseColor(android.graphics.Color.WHITE)
+                    page.render(renderedBitmap, null, null, PdfRenderer.Page.RENDER_MODE_FOR_DISPLAY)
+                    currentBitmap = renderedBitmap
+                    scale = 1f
+                    offsetX = 0f
+                    offsetY = 0f
+                } finally {
+                    page.close()
+                    if (bitmap != null && bitmap !== currentBitmap && !bitmap.isRecycled) bitmap.recycle()
+                }
             } catch (e: Exception) {
                 e.printStackTrace()
             }
+        }
+    }
+
+    // Recycle each rendered page bitmap when it is replaced or the screen leaves composition.
+    DisposableEffect(currentBitmap) {
+        val bitmapToDispose = currentBitmap
+        onDispose {
+            if (bitmapToDispose != null && !bitmapToDispose.isRecycled) bitmapToDispose.recycle()
         }
     }
 

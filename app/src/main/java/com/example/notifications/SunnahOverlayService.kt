@@ -170,9 +170,14 @@ class SunnahOverlayService : Service() {
         }
 
         fun update(context: Context) {
-            context.startService(Intent(context, SunnahOverlayService::class.java).apply {
+            val intent = Intent(context, SunnahOverlayService::class.java).apply {
                 action = ACTION_UPDATE
-            })
+            }
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+                ContextCompat.startForegroundService(context, intent)
+            } else {
+                context.startService(intent)
+            }
         }
 
         fun stop(context: Context) {

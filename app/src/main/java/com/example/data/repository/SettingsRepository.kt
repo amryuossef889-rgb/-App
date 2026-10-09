@@ -31,7 +31,7 @@ enum class AppFontSize {
 }
 
 data class AppSettings(
-    val themeMode: ThemeMode = ThemeMode.SYSTEM,
+    val themeMode: ThemeMode = ThemeMode.DARK,
     val backgroundMode: BackgroundMode = BackgroundMode.DEFAULT,
     val customBackgroundPath: String? = null,
     val backgroundOpacity: Float = 0.25f,
@@ -58,7 +58,7 @@ class SettingsRepository(private val context: Context) {
     }
 
     val settingsFlow: Flow<AppSettings> = context.dataStore.data.map { preferences ->
-        val themeModeStr = preferences[KEY_THEME_MODE] ?: ThemeMode.SYSTEM.name
+        val themeModeStr = preferences[KEY_THEME_MODE] ?: ThemeMode.DARK.name
         val bgModeStr = preferences[KEY_BG_MODE] ?: BackgroundMode.DEFAULT.name
         val bgScaleStr = preferences[KEY_BG_SCALE] ?: BackgroundScale.CROP.name
         val fontSizeStr = preferences[KEY_FONT_SIZE] ?: AppFontSize.MEDIUM.name

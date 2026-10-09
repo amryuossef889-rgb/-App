@@ -188,10 +188,18 @@ fun AdminLibraryScreen(
                                 IconButton(
                                     onClick = {
                                         // Delete file from internal storage
-                                        val file = File(File(context.filesDir, "pdfs"), book.filename)
-                                        if (file.exists()) file.delete()
-                                        viewModel.deleteBook(book.id)
-                                        Toast.makeText(context, "تم حذف الكتاب", Toast.LENGTH_SHORT).show()
+                                        val pdfDir = File(context.filesDir, "pdfs").canonicalFile
+                                        val file = File(pdfDir, book.filename).canonicalFile
+                                        if (file.parentFile == pdfDir && book.filename.matches(Regex("pdf_[a-fA-F0-9-]+\\.pdf"))) {
+                                            if (file.exists() && !file.delete()) {
+                                                Toast.makeText(context, "تعذر حذف ملف الكتاب", Toast.LENGTH_LONG).show()
+                                                return@IconButton
+                                            }
+                                            viewModel.deleteBook(book.id)
+                                            Toast.makeText(context, "تم حذف الكتاب", Toast.LENGTH_SHORT).show()
+                                        } else {
+                                            Toast.makeText(context, "اسم ملف غير صالح؛ لم يتم الحذف", Toast.LENGTH_LONG).show()
+                                        }
                                     }
                                 ) {
                                     Icon(
@@ -243,13 +251,24 @@ fun AdminLibraryScreen(
                                 val filename = "pdf_${UUID.randomUUID()}.pdf"
                                 val destFile = File(pdfDir, filename)
 
-                                context.contentResolver.openInputStream(selectedUri!!)?.use { input ->
+                                val inputStream = context.contentResolver.openInputStream(selectedUri!!)
+                                    ?: throw IllegalStateException("تعذر قراءة ملف PDF المحدد")
+                                inputStream.use { input ->
                                     FileOutputStream(destFile).use { output ->
                                         input.copyTo(output)
                                     }
                                 }
 
                                 val fileSize = destFile.length()
+                                val pdfHeader = destFile.inputStream().use { input ->
+                                    val header = ByteArray(5)
+                                    val read = input.read(header)
+                                    if (read == header.size) String(header, Charsets.US_ASCII) else ""
+                                }
+                                if (fileSize < 5L || pdfHeader != "%PDF-") {
+                                    destFile.delete()
+                                    throw IllegalArgumentException("الملف المحدد ليس ملف PDF صالحاً")
+                                }
                                 viewModel.addBook(
                                     title = bookTitleInput.trim(),
                                     description = bookDescInput.trim(),

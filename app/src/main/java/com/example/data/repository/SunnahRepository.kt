@@ -81,15 +81,12 @@ class SunnahRepository(private val db: AppDatabase) {
 
         val newLongestStreak = maxOf(currentProgress.longestStreak, newStreak)
 
-        // Find the next uncompleted Sunnah dynamically so the catalogue can grow beyond 100 entries.
-        val maxSunnahId = sunnahDao.getMaxSunnahId() ?: 1
-        var nextId = sunnahId + 1
-        while (nextId <= maxSunnahId && completedSet.contains(nextId)) {
-            nextId++
-        }
-        if (nextId > maxSunnahId) {
-            nextId = (1..maxSunnahId).firstOrNull { !completedSet.contains(it) } ?: maxSunnahId
-        }
+        // Always point to the first uncompleted item in catalogue order. This prevents
+        // completing a later item from accidentally skipping earlier unfinished items.
+        val orderedIds = sunnahDao.getAllSunnahIdsInOrder()
+        val nextId = orderedIds.firstOrNull { it !in completedSet }
+            ?: orderedIds.lastOrNull()
+            ?: sunnahId
 
         val jsonArray = JSONArray()
         completedSet.sorted().forEach { jsonArray.put(it) }
@@ -121,7 +118,16 @@ class SunnahRepository(private val db: AppDatabase) {
             completedSet.remove(sunnahId)
             val jsonArray = JSONArray()
             completedSet.sorted().forEach { jsonArray.put(it) }
-            userProgressDao.insertOrUpdate(currentProgress.copy(completedSunnahs = jsonArray.toString()))
+            val orderedIds = sunnahDao.getAllSunnahIdsInOrder()
+            val firstUncompletedId = orderedIds.firstOrNull { it !in completedSet }
+                ?: orderedIds.lastOrNull()
+                ?: currentProgress.currentSunnahId
+            userProgressDao.insertOrUpdate(
+                currentProgress.copy(
+                    currentSunnahId = firstUncompletedId,
+                    completedSunnahs = jsonArray.toString()
+                )
+            )
             false
         } else {
             markSunnahCompleted(sunnahId)

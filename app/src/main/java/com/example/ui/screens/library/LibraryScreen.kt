@@ -190,7 +190,7 @@ fun LibraryScreen(
             text = {
                 Column {
                     Text(
-                        text = "أدخل كلمة المرور الإدارية لإدارة وإضافة ملفات الكتب (PDF):",
+                        text = if (viewModel.isAdminPasswordConfigured()) "أدخل كلمة المرور التي أنشأتها على هذا الجهاز:" else "أنشئ كلمة مرور إدارية لهذا الجهاز (8 أحرف على الأقل). لن يتم تضمين كلمة مرور ثابتة داخل التطبيق.",
                         style = MaterialTheme.typography.bodyMedium
                     )
                     Spacer(modifier = Modifier.height(12.dp))
@@ -200,7 +200,7 @@ fun LibraryScreen(
                             passwordInput = it
                             passwordError = false
                         },
-                        label = { Text("كلمة المرور") },
+                        label = { Text(if (viewModel.isAdminPasswordConfigured()) "كلمة المرور" else "إنشاء كلمة المرور") },
                         visualTransformation = PasswordVisualTransformation(),
                         singleLine = true,
                         isError = passwordError,
@@ -209,7 +209,7 @@ fun LibraryScreen(
                     )
                     if (passwordError) {
                         Text(
-                            text = "كلمة المرور غير صحيحة",
+                            text = if (viewModel.isAdminPasswordConfigured()) "كلمة المرور غير صحيحة (8 أحرف على الأقل)" else "استخدم كلمة مرور من 8 أحرف على الأقل",
                             color = MaterialTheme.colorScheme.error,
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.padding(top = 4.dp)
@@ -231,7 +231,7 @@ fun LibraryScreen(
                         }
                     }
                 ) {
-                    Text("دخول")
+                    Text(if (viewModel.isAdminPasswordConfigured()) "دخول" else "إنشاء وفتح الإدارة")
                 }
             },
             dismissButton = {

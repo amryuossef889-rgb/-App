@@ -3,7 +3,10 @@ name: Build APK
 on:
   workflow_dispatch:
   push:
-    branches: [main]
+    branches:
+      - main
+      - 'redesign/**'
+      - 'fix/**'
 
 jobs:
   build:
@@ -153,6 +156,9 @@ jobs:
           print("SQLite integrity:", cur.execute("PRAGMA integrity_check").fetchone()[0])
           con.close()
           PY
+
+      - name: Run unit tests
+        run: gradle --no-daemon testDebugUnitTest
 
       - name: Build debug APK
         run: gradle --no-daemon assembleDebug

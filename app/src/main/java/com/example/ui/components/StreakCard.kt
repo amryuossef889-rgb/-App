@@ -26,8 +26,9 @@ fun StreakCard(
     totalCount: Int = 100,
     modifier: Modifier = Modifier
 ) {
-    val progress = if (totalCount > 0) completedCount.toFloat() / totalCount else 0f
-    val percent = (progress * 100).toInt()
+    val safeTotal = totalCount.coerceAtLeast(0)
+    val progress = if (safeTotal > 0) completedCount.coerceAtLeast(0).toFloat() / safeTotal else 0f
+    val percent = (progress.coerceIn(0f, 1f) * 100).toInt()
 
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -38,55 +39,57 @@ fun StreakCard(
             horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             Card(
-                modifier = Modifier.weight(1f).height(96.dp),
-                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.weight(1f).height(104.dp),
+                shape = RoundedCornerShape(22.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.72f)
+                    containerColor = MaterialTheme.colorScheme.primaryContainer
                 ),
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.20f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = 0.22f)),
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp).fillMaxHeight()
+                    modifier = Modifier.padding(16.dp).fillMaxHeight(),
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = "السنن المكتملة",
-                        style = MaterialTheme.typography.labelSmall.copy(
+                        style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.78f)
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.82f)
                         )
                     )
                     Text(
-                        text = "\${completedCount}",
+                        text = completedCount.coerceAtLeast(0).toString(),
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.ExtraBold,
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
                         )
                     )
                 }
             }
 
             Card(
-                modifier = Modifier.weight(1f).height(96.dp),
-                shape = RoundedCornerShape(24.dp),
+                modifier = Modifier.weight(1f).height(104.dp),
+                shape = RoundedCornerShape(22.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.68f)
+                    containerColor = MaterialTheme.colorScheme.surface
                 ),
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.36f)),
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
             ) {
                 Column(
-                    modifier = Modifier.padding(16.dp).fillMaxHeight()
+                    modifier = Modifier.padding(16.dp).fillMaxHeight(),
+                    verticalArrangement = Arrangement.SpaceBetween
                 ) {
                     Text(
                         text = "نسبة الإنجاز",
-                        style = MaterialTheme.typography.labelSmall.copy(
+                        style = MaterialTheme.typography.labelMedium.copy(
                             fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.78f)
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     )
                     Text(
-                        text = "\${percent}%",
+                        text = "$percent%",
                         style = MaterialTheme.typography.headlineMedium.copy(
                             fontWeight = FontWeight.ExtraBold,
                             color = MaterialTheme.colorScheme.primary
@@ -95,5 +98,13 @@ fun StreakCard(
                 }
             }
         }
+        Text(
+            text = "سلسلتك الحالية: $currentStreak يوم • أطول سلسلة: $longestStreak يوم",
+            style = MaterialTheme.typography.bodySmall.copy(
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                fontWeight = FontWeight.Medium
+            ),
+            modifier = Modifier.padding(horizontal = 4.dp)
+        )
     }
 }

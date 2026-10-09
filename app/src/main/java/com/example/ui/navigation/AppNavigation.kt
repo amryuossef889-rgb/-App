@@ -5,6 +5,16 @@ import android.content.pm.PackageManager
 import android.os.Build
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
@@ -13,6 +23,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.core.content.ContextCompat
@@ -29,6 +42,7 @@ import com.example.ui.components.AppBottomBar
 import com.example.ui.components.AppTopBar
 import com.example.ui.screens.detail.SunnahDetailScreen
 import com.example.ui.screens.detail.SunnahDetailViewModel
+import com.example.ui.screens.welcome.WelcomeScreen
 import com.example.ui.screens.home.HomeScreen
 import com.example.ui.screens.home.HomeViewModel
 import com.example.ui.screens.library.AdminLibraryScreen
@@ -53,6 +67,7 @@ fun AppNavigation(
     val navController = rememberNavController()
     val navBackStackEntry by navController.currentBackStackEntryAsState()
     val currentRoute = navBackStackEntry?.destination?.route
+    var welcomeComplete by remember { mutableStateOf(context.getSharedPreferences("sunnah_launch", android.content.Context.MODE_PRIVATE).getBoolean("welcome_complete", false)) }
 
     val settings by settingsViewModel.settings.collectAsState()
 
@@ -61,8 +76,8 @@ fun AppNavigation(
         contract = ActivityResultContracts.RequestPermission()
     ) { _ -> }
 
-    LaunchedEffect(Unit) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+    LaunchedEffect(welcomeComplete) {
+        if (welcomeComplete && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
             if (ContextCompat.checkSelfPermission(
                     context,
                     Manifest.permission.POST_NOTIFICATIONS
@@ -105,9 +120,9 @@ fun AppNavigation(
     ) {
         Scaffold(
             topBar = {
-                AppTopBar(
+                if (currentRoute != Screen.Welcome.route) AppTopBar(
                     title = topBarTitle,
-                    canNavigateBack = !isTopLevelRoute,
+                    canNavigateBack = !isTopLevelRoute && currentRoute != Screen.Welcome.route,
                     onNavigateBack = { navController.navigateUp() }
                 )
             },
@@ -136,8 +151,23 @@ fun AppNavigation(
             ) {
                 NavHost(
                     navController = navController,
-                    startDestination = Screen.Home.route
+                    startDestination = if (welcomeComplete) Screen.Home.route else Screen.Welcome.route
                 ) {
+                    // First-run welcome screen
+                    composable(Screen.Welcome.route) {
+                        WelcomeScreen(
+                            onContinue = {
+                                context.getSharedPreferences("sunnah_launch", android.content.Context.MODE_PRIVATE)
+                                     .edit().putBoolean("welcome_complete", true).apply()
+                                welcomeComplete = true
+                                navController.navigate(Screen.Home.route) {
+                                    popUpTo(Screen.Welcome.route) { inclusive = true }
+                                    launchSingleTop = true
+                                }
+                            }
+                        )
+                    }
+
                     // Home
                     composable(Screen.Home.route) {
                         val homeViewModel: HomeViewModel = viewModel(
@@ -198,7 +228,7 @@ fun AppNavigation(
                     // Library
                     composable(Screen.Library.route) {
                         val libraryViewModel: LibraryViewModel = viewModel(
-                            factory = LibraryViewModel.provideFactory(app.sunnahRepository)
+                            factory = LibraryViewModel.provideFactory(app.sunnahRepository, context)
                         )
                         LibraryScreen(
                             viewModel = libraryViewModel,
@@ -214,7 +244,7 @@ fun AppNavigation(
                     // Admin Library
                     composable(Screen.AdminLibrary.route) {
                         val libraryViewModel: LibraryViewModel = viewModel(
-                            factory = LibraryViewModel.provideFactory(app.sunnahRepository)
+                            factory = LibraryViewModel.provideFactory(app.sunnahRepository, context)
                         )
                         AdminLibraryScreen(
                             viewModel = libraryViewModel,
